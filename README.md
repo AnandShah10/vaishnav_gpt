@@ -187,12 +187,6 @@ Static files are served via **WhiteNoise** middleware.
 
 ---
 
-## 👥 Credits
-
-Built with ❤️ by **JMS Advisory Services Private Limited**
-
----
-
 <p align="center">
   <em>Jai Shree Krishna! 🙏</em>
 </p>
