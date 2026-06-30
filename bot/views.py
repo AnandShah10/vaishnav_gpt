@@ -2,7 +2,7 @@
 
 from openai import AzureOpenAI
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.shortcuts import render
@@ -126,7 +126,9 @@ TRADITION_PROFILES = {
     
     "vallabha": """USER_PROFILE: Pushtimarg (Rudra Sampradaya - Vallabhacharya) - Pure Monism (Shuddhadvaita), Pushti Marg, Shrinathji Sewa, and Ashta-Chhap poets.""",
     
-    "nimbarka": """USER_PROFILE: Nimbarka Sampradaya (Kumara Sampradaya) - Dvaitadvaita philosophy with primary focus on eternal Sri Radha-Krishna as Supreme Absolute."""
+    "nimbarka": """USER_PROFILE: Nimbarka Sampradaya (Kumara Sampradaya) - Dvaitadvaita philosophy with primary focus on eternal Sri Radha-Krishna as Supreme Absolute.""",
+
+    "gita": """USER_PROFILE: Bhagavad Gita Learning - Focus specifically on the teachings of the Bhagavad Gita, Chapter by Chapter, Sloka by Sloka, providing deep philosophical insights and practical applications."""
 }
 
 def get_system_prompt_with_tradition(tradition):
@@ -140,6 +142,7 @@ def vaishnav_bot(request):
             data = json.loads(request.body)
             user_message = data.get("message", "").strip()
             tradition = data.get("tradition", "universal")   # From frontend selection
+            language = data.get("language", "English")
 
             session_key = f"vaishnav_chat_{tradition}"
 
@@ -156,40 +159,70 @@ def vaishnav_bot(request):
 
                 history = [
                     {"role": "system", "content": full_system_prompt},
-                    {"role": "system", "content": date_prompt}
+                    {"role": "system", "content": date_prompt},
+                    {"role": "system", "content": f"IMPORTANT: You must always respond to the user in {language} language."}
                 ]
             else:
                 history = request.session[session_key]
+                history = [m for m in history if not (m.get("role") == "system" and "IMPORTANT: You must always respond" in str(m.get("content", "")))]
+                history.insert(2, {"role": "system", "content": f"IMPORTANT: You must always respond to the user in {language} language."})
 
             history.append({"role": "user", "content": user_message})
 
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=history,
-            )
+            def stream_response():
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=history,
+                        stream=True
+                    )
 
-            bot_reply = response.choices[0].message.content.strip()
-            bot_reply = markdown_to_html(bot_reply)
-            history.append({"role": "assistant", "content": bot_reply})
-            # Save to session
-            request.session[session_key] = history
-            request.session.modified = True
+                    bot_reply = ""
+                    for chunk in response:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            text = chunk.choices[0].delta.content
+                            bot_reply += text
+                            yield text
 
-            # Optional: Log to DB
-            Message.objects.create(
-                user_message=user_message,
-                bot_reply=bot_reply,
-                timestamp=timezone.now(),
-                tradition=tradition
-            )
+                    # Save to session
+                    history.append({"role": "assistant", "content": bot_reply})
+                    request.session[session_key] = history
+                    request.session.modified = True
+                    request.session.save()
 
-            return JsonResponse({
-                "reply": bot_reply,
-                "tradition": tradition
-            })
+                    # Log to DB
+                    Message.objects.create(
+                        user_message=user_message,
+                        bot_reply=bot_reply,
+                        timestamp=timezone.now(),
+                        tradition=tradition
+                    )
+                except Exception as e:
+                    print("Error:", e)
+                    yield "\n\nSorry! I am not able to answer that at the moment."
+
+            return StreamingHttpResponse(stream_response(), content_type='text/plain')
 
         except Exception as e:
             print("Error:", e)
-            return JsonResponse({"reply": "Sorry! I am not able to answer that at the moment."})
+            return JsonResponse({"reply": "Sorry! I am not able to answer that at the moment."}, status=500)
     request.session.flush()
     return render(request,"viashnav_bot.html")
+
+@csrf_exempt
+def submit_feedback(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            name = data.get("name")
+            phone = data.get("phone")
+            email = data.get("email")
+            rating = data.get("rating", 0)
+            if name and (phone or email):
+                from .models import UserFeedback
+                UserFeedback.objects.create(name=name, phone=phone, email=email, rating=rating)
+                return JsonResponse({"status": "success"})
+            return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    return JsonResponse({"status": "error"}, status=405)

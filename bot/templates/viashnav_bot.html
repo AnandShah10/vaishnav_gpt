@@ -7,22 +7,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Vaishnav GPT</title>
     <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* ───── RESET & BASE ───── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; overflow: hidden; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(175deg, #f5e6c8 0%, #fdf6ec 35%, #fef9f0 100%);
-            color: #3d2b1f;
+            background: linear-gradient(160deg, #e0f2fe 0%, #d1fae5 35%, #ccfbf1 70%, #fef3c7 100%);
+            color: #2d3748;
         }
-        .heading-font { font-family: 'Playfair Display', serif; }
 
-        /* ───── LAYOUT SHELL ───── */
+        .heading-font {
+            font-family: 'Cinzel', serif;
+        }
+
         .app-shell {
             max-width: 720px;
             margin: 0 auto;
@@ -30,456 +43,746 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border-left: 1px solid rgba(0, 0, 0, 0.04);
+            border-right: 1px solid rgba(0, 0, 0, 0.04);
         }
 
-        /* ───── TOP NAVBAR ───── */
+        /* NAV */
         .top-nav {
-            background: linear-gradient(135deg, #5c3d2e 0%, #7a5033 100%);
-            color: #fff;
-            padding: 12px 24px;
+            background: #ffffff;
+            color: #0f766e;
+            padding: 14px 24px;
             display: flex;
             align-items: center;
             gap: 12px;
             flex-shrink: 0;
-            box-shadow: 0 2px 12px rgba(92, 61, 46, 0.25);
-            position: relative;
-            z-index: 10;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border-bottom: 1px solid #e2e8f0;
         }
-        .nav-logo {
-            width: 36px; height: 36px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-        }
-        .nav-title { font-weight: 600; font-size: 15px; }
-        .nav-breadcrumb {
-            font-size: 13px;
-            color: rgba(255,255,255,0.65);
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .nav-breadcrumb .sep { opacity: 0.4; }
-        .nav-breadcrumb .active { color: #fcd9a8; font-weight: 500; }
 
-        /* ───── SELECTION SCREEN ───── */
-        #selection-screen {
+        .nav-logo {
+            font-size: 26px;
+        }
+
+        .nav-title {
+            font-weight: 700;
+            font-size: 18px;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-actions {
+            margin-left: auto;
+        }
+
+        .home-btn {
+            background: rgba(13, 148, 136, 0.1);
+            border: 1px solid rgba(13, 148, 136, 0.2);
+            color: #0d9488;
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background: rgba(13, 148, 136, 0.2);
+        }
+
+        /* SCREENS */
+        .screen {
+            display: none;
             flex: 1;
-            display: flex;
             flex-direction: column;
             overflow-y: auto;
             scrollbar-width: none;
         }
-        #selection-screen::-webkit-scrollbar { display: none; }
 
+        .screen.active {
+            display: flex;
+        }
+
+        .screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* SELECTION */
         .selection-body {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 24px 16px 40px;
+            padding: 36px 20px 20px;
         }
+
         .hero-icon {
-            font-size: 64px;
-            line-height: 1;
+            font-size: 60px;
             margin-bottom: 12px;
-            color: #3d2b1f;
         }
+
         .hero-title {
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 700;
-            color: #3d2b1f;
+            color: #0d9488;
             margin-bottom: 6px;
         }
+
         .hero-subtitle {
             font-size: 15px;
-            color: #8b7355;
+            color: #64748b;
             text-align: center;
-            max-width: 380px;
-            line-height: 1.55;
+            max-width: 400px;
+            line-height: 1.6;
             margin-bottom: 28px;
         }
 
-        /* Session badge */
-        .session-badge {
-            background: linear-gradient(135deg, #f0f7f0 0%, #e8f4e8 100%);
-            border: 1px solid #c5dfc5;
-            border-radius: 16px;
-            padding: 14px 22px;
+        .form-group {
             width: 100%;
             max-width: 480px;
-            margin-bottom: 28px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 22px;
         }
-        .session-badge .badge-icon {
-            font-size: 18px;
-        }
-        .session-badge .badge-text {
-            font-size: 13px;
-            color: #3d6b3d;
-        }
-        .session-badge .badge-text strong { color: #2d5a2d; }
 
-        /* Tradition selector heading */
-        .tradition-heading {
-            font-size: 15px;
+        .form-label {
+            display: block;
+            font-size: 14px;
             font-weight: 600;
-            color: #5c3d2e;
-            margin-bottom: 16px;
-            text-align: center;
+            color: #0d9488;
+            margin-bottom: 8px;
         }
 
-        /* Tradition cards */
+        .lang-select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1.5px solid #d1d5db;
+            color: #1e293b;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .lang-select:focus {
+            border-color: #14b8a6;
+        }
+
         .tradition-list {
             width: 100%;
             max-width: 480px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 30px;
         }
+
         .tradition-card {
             width: 100%;
             text-align: left;
-            padding: 18px 22px;
-            border-radius: 16px;
-            border: 1.5px solid #e8ddd0;
-            background: #fffcf7;
+            padding: 16px 20px;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            background: #fff;
             cursor: pointer;
             transition: all 0.25s ease;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
         }
+
         .tradition-card:hover {
-            border-color: #c9a96e;
-            background: #fff9f0;
-            box-shadow: 0 4px 20px rgba(180, 140, 80, 0.12);
+            border-color: #14b8a6;
+            background: #f0fdfa;
+            box-shadow: 0 4px 16px rgba(13, 148, 136, 0.1);
             transform: translateY(-2px);
         }
-        .tradition-card:active { transform: scale(0.985); }
-        .tradition-card .card-emoji {
-            font-size: 32px;
-            flex-shrink: 0;
-            width: 44px;
+
+        .tradition-card .card-icon {
+            font-size: 30px;
+            width: 40px;
             text-align: center;
         }
-        .tradition-card .card-body { flex: 1; min-width: 0; }
+
         .tradition-card .card-title {
             font-weight: 600;
-            font-size: 16px;
-            color: #3d2b1f;
+            font-size: 15px;
+            color: #0f766e;
         }
+
         .tradition-card .card-desc {
             font-size: 13px;
-            color: #9c8468;
+            color: #94a3b8;
             margin-top: 2px;
         }
 
-        /* ───── FOOTER ───── */
-        .app-footer {
-            text-align: center;
-            padding: 14px 16px;
-            font-size: 12px;
-            color: #a08b6f;
-            flex-shrink: 0;
-            border-top: 1px solid rgba(0,0,0,0.05);
-        }
-        .app-footer .heart { color: #e74c3c; }
-
-        /* ───── CHAT SCREEN ───── */
-        #chat-screen {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-screen.active { display: flex; }
-
-        /* Welcome hero in chat */
-        .chat-welcome {
-            text-align: center;
-            padding: 36px 20px 10px;
-            flex-shrink: 0;
-        }
-        .chat-welcome .cw-icon {
-            font-size: 56px;
-            margin-bottom: 8px;
-            color: #3d2b1f;
-        }
-        .chat-welcome .cw-title {
-            font-size: 26px;
-            font-weight: 700;
-            color: #3d2b1f;
-            margin-bottom: 4px;
-        }
-        .chat-welcome .cw-sub {
-            font-size: 14px;
-            color: #8b7355;
-            max-width: 400px;
-            margin: 0 auto;
-            line-height: 1.5;
-        }
-        .chat-welcome .cw-tradition {
-            font-weight: 600;
-        }
-
-        /* Suggestion chips */
+        /* SUGGESTIONS */
         #suggestions {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            padding: 20px 20px 10px;
+            gap: 8px;
+            padding: 8px 20px 14px;
             flex-shrink: 0;
         }
+
         .suggestion-chip {
             background: #fff;
-            border: 1px solid #ddd0bc;
-            color: #5c3d2e;
-            padding: 10px 20px;
+            border: 1.5px solid #e2e8f0;
+            color: #0f766e;
+            padding: 9px 18px;
             border-radius: 999px;
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.25s;
             white-space: nowrap;
-        }
-        .suggestion-chip:hover {
-            border-color: #c9a96e;
-            background: #fef5e7;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(180, 140, 80, 0.15);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
-        /* Messages */
+        .suggestion-chip:hover {
+            border-color: #14b8a6;
+            background: #f0fdfa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.12);
+        }
+
+        /* CHAT */
+        .chat-welcome {
+            text-align: center;
+            padding: 28px 20px 4px;
+            flex-shrink: 0;
+        }
+
+        .cw-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .cw-title {
+            font-size: 24px;
+            color: #0d9488;
+            margin-bottom: 6px;
+        }
+
+        .cw-sub {
+            font-size: 14px;
+            color: #64748b;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Writing animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg-bubble.streaming>* {
+            animation: fadeInUp 0.25s ease both;
+        }
+
+        .msg-bubble.streaming {
+            border-left: 3px solid #14b8a6;
+        }
+
+        .blinking-cursor::after {
+            content: '▍';
+            color: #14b8a6;
+            font-weight: 400;
+            animation: blink 0.8s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
         #messages {
             flex: 1;
             overflow-y: auto;
             padding: 16px 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            min-height: 0;
+            gap: 18px;
             scrollbar-width: thin;
-            scrollbar-color: #c2956b #f5e8d3;
-        }
-        #messages::-webkit-scrollbar { width: 5px; }
-        #messages::-webkit-scrollbar-track { background: #f5e8d3; border-radius: 20px; }
-        #messages::-webkit-scrollbar-thumb { background: #c2956b; border-radius: 20px; }
-        #messages::-webkit-scrollbar-thumb:hover { background: #a07850; }
-
-        .msg-row { display: flex; }
-        .msg-row.user { justify-content: flex-end; }
-        .msg-row.bot { justify-content: flex-start; }
-
-        .msg-bubble {
-            max-width: 80%;
-            padding: 14px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        .msg-row.user .msg-bubble {
-            background: linear-gradient(135deg, #7a5033, #5c3d2e);
-            color: #fff;
-            border-top-right-radius: 4px;
-        }
-        .msg-row.bot .msg-bubble {
-            background: #fff;
-            border: 1px solid #e8ddd0;
-            color: #3d2b1f;
-            border-top-left-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            scrollbar-color: #99f6e4 transparent;
         }
 
-        /* ── Rich message content typography ── */
-        .msg-bubble h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 17px;
-            font-weight: 700;
-            color: #5c3d2e;
-            margin: 16px 0 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #ede3d3;
+        #messages::-webkit-scrollbar {
+            width: 5px;
         }
-        .msg-bubble h2:first-child { margin-top: 0; }
-        .msg-bubble h3 {
-            font-size: 15px;
-            font-weight: 600;
-            color: #6b4a30;
-            margin: 14px 0 6px;
-        }
-        .msg-bubble h3:first-child { margin-top: 0; }
-        .msg-bubble h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #7a5a3c;
-            margin: 10px 0 4px;
-        }
-        .msg-bubble p {
-            margin: 0 0 8px;
-            line-height: 1.7;
-        }
-        .msg-bubble p:last-child { margin-bottom: 0; }
-        .msg-bubble ul, .msg-bubble ol {
-            margin: 8px 0 12px;
-            padding-left: 22px;
-        }
-        .msg-bubble ul { list-style: disc; }
-        .msg-bubble ol { list-style: decimal; }
-        .msg-bubble li {
-            margin-bottom: 6px;
-            line-height: 1.6;
-        }
-        .msg-bubble li:last-child { margin-bottom: 0; }
-        .msg-bubble strong { font-weight: 600; color: #3d2b1f; }
-        .msg-bubble em { font-style: italic; }
-        .msg-bubble .msg-link {
-            color: #8b5e3c;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            transition: color 0.2s;
-        }
-        .msg-bubble .msg-link:hover { color: #5c3d2e; }
-        .msg-bubble br { display: block; content: ""; margin-top: 6px; }
 
-        /* ───── BOTTOM INPUT BAR ───── */
-        .input-bar {
-            padding: 14px 20px;
-            background: #fffcf7;
-            border-top: 1px solid #ede3d3;
-            flex-shrink: 0;
+        #messages::-webkit-scrollbar-thumb {
+            background: #99f6e4;
+            border-radius: 10px;
+        }
+
+        .msg-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .msg-row.user {
+            justify-content: flex-end;
+        }
+
+        .msg-row.bot {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #ccfbf1, #f0fdfa);
+            border: 1px solid #99f6e4;
         }
+
+        .msg-row.user .avatar {
+            background: linear-gradient(135deg, #fef3c7, #fffbeb);
+            border-color: #fde68a;
+        }
+
+        .msg-bubble {
+            max-width: 78%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 14.5px;
+            line-height: 1.65;
+            word-break: break-word;
+        }
+
+        .msg-row.user .msg-bubble {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+        }
+
+        .msg-row.bot .msg-bubble {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .msg-bubble h2,
+        .msg-bubble h3 {
+            color: #0f766e;
+            margin: 14px 0 6px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .msg-bubble h2:first-child,
+        .msg-bubble h3:first-child {
+            margin-top: 0;
+        }
+
+        .msg-bubble h2 {
+            font-size: 17px;
+        }
+
+        .msg-bubble h3 {
+            font-size: 15px;
+        }
+
+        .msg-bubble p {
+            margin-bottom: 10px;
+        }
+
+        .msg-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-bubble strong {
+            color: #0d9488;
+            font-weight: 600;
+        }
+
+        .msg-bubble ul,
+        .msg-bubble ol {
+            margin-left: 18px;
+            margin-bottom: 10px;
+        }
+
+        .msg-bubble li {
+            margin-bottom: 4px;
+        }
+
+        .msg-bubble code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0f766e;
+        }
+
+        .msg-bubble a {
+            color: #0d9488;
+            text-decoration: underline;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+            height: 24px;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            background: #14b8a6;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0)
+            }
+
+            40% {
+                transform: scale(1)
+            }
+        }
+
+        /* INPUT */
+        .input-bar {
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+
         .input-bar textarea {
             flex: 1;
             resize: none;
-            border: 1.5px solid #ddd0bc;
+            border: 1.5px solid #d1d5db;
             background: #fff;
-            border-radius: 999px;
-            padding: 12px 22px;
+            border-radius: 24px;
+            padding: 12px 20px;
             font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            color: #3d2b1f;
+            color: #1e293b;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.3s;
+            font-family: 'Inter', sans-serif;
         }
-        .input-bar textarea::placeholder { color: #b5a48e; }
-        .input-bar textarea:focus { border-color: #c9a96e; }
+
+        .input-bar textarea::placeholder {
+            color: #a1a1aa;
+        }
+
+        .input-bar textarea:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+        }
 
         .send-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #7a5033, #5c3d2e);
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
             color: #fff;
             border: none;
-            border-radius: 999px;
-            padding: 12px 22px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
+            border-radius: 50%;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s;
             flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(13, 148, 136, 0.25);
         }
-        .send-btn:hover {
-            background: linear-gradient(135deg, #8b5e3c, #6b4632);
-            box-shadow: 0 4px 12px rgba(92, 61, 46, 0.3);
-        }
-        .send-btn:active { transform: scale(0.95); }
-        .send-btn .btn-icon { font-size: 13px; }
 
-        /* ───── RESPONSIVE ───── */
+        .send-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+        }
+
+        /* FOOTER */
+        .app-footer {
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .app-footer .heart {
+            color: #ef4444;
+        }
+
+        .app-footer .highlight {
+            color: #0f766e;
+            font-weight: 600;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 28px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .modal-icon {
+            font-size: 40px;
+            margin-bottom: 14px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0d9488;
+            margin-bottom: 6px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal-input:focus {
+            border-color: #14b8a6;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: #fff;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 6px;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 10px rgba(13, 148, 136, 0.2);
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .skip-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 14px;
+            cursor: pointer;
+        }
+
+        /* RATING */
+        .rating-container {
+            margin-bottom: 20px;
+        }
+
+        .morpankh-rating {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .rating-morpankh {
+            height: 38px;
+            width: auto;
+            cursor: pointer;
+            opacity: 0.3;
+            filter: grayscale(100%);
+            transition: all 0.2s ease;
+        }
+
+        .rating-morpankh.active {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.1);
+        }
+
+        .rating-morpankh.hovered {
+            opacity: 0.8;
+            filter: grayscale(20%);
+            transform: scale(1.05);
+        }
+
         @media (max-width: 480px) {
-            .hero-title { font-size: 26px; }
-            .hero-subtitle { font-size: 14px; }
-            .tradition-card { padding: 14px 16px; }
-            .tradition-card .card-title { font-size: 15px; }
-            .suggestion-chip { font-size: 12px; padding: 8px 14px; }
-            .chat-welcome .cw-title { font-size: 22px; }
-            .chat-welcome { padding-top: 24px; }
-            .send-btn { padding: 12px 16px; }
-            .send-btn span { display: none; }
-            .input-bar textarea { padding: 12px 18px; }
+            .hero-title {
+                font-size: 26px;
+            }
+
+            .hero-subtitle {
+                font-size: 13px;
+            }
+
+            .tradition-card {
+                padding: 14px 16px;
+            }
+
+            .cw-title {
+                font-size: 20px;
+            }
+
+            .chat-welcome {
+                padding-top: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
-
     <div class="app-shell">
-
-        <!-- ═══ TOP NAVBAR ═══ -->
         <nav class="top-nav">
-            <div class="nav-logo">ॐ</div>
+            <div class="nav-logo"><img src="{% static 'morpankh.svg' %}" alt="Logo"
+                    style="height: 32px; width: auto; vertical-align: middle;"></div>
             <span class="nav-title">Vaishnav GPT</span>
-            <div class="nav-breadcrumb" id="nav-breadcrumb">
-                <!-- filled by JS after tradition selection -->
+            <div class="nav-actions">
+                <button id="homeBtn" class="home-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
             </div>
         </nav>
 
-        <!-- ═══ SELECTION SCREEN ═══ -->
-        <div id="selection-screen">
+        <!-- SELECTION SCREEN -->
+        <div id="selection-screen" class="screen active">
             <div class="selection-body">
-                <div class="hero-icon">ॐ</div>
+                <div class="hero-icon"><img src="{% static 'morpankh.svg' %}" alt="Hero"
+                        style="height: 80px; width: auto;"></div>
                 <h1 class="hero-title heading-font">Vaishnav GPT</h1>
-                <p class="hero-subtitle">
-                    Divine Wisdom &amp; Pure Bhakti. A scholarly oracle of Vaishnava theology, philosophy, history &amp; ritual practice.
-                </p>
+                <p class="hero-subtitle">Divine Wisdom &amp; Pure Bhakti — An oracle of Vaishnava theology, philosophy
+                    and practical teachings.</p>
 
-                <div class="session-badge">
-                    <span class="badge-icon">🔴</span>
-                    <div class="badge-text">
-                        <strong>Session initiated:</strong><br>
-                        <span id="session-time"></span>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">🌐 Select Language / भाषा चुनें / ભાષા પસંદ કરો</label>
+                    <select id="languageSelect" class="lang-select">
+                        <option value="English">English</option>
+                        <option value="Hindi">हिन्दी (Hindi)</option>
+                        <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                    </select>
                 </div>
 
-                <p class="tradition-heading">Select your tradition to begin:</p>
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label class="form-label">📿 Select Your Path</label>
+                </div>
 
                 <div class="tradition-list">
-                    <button onclick="selectTradition('universal')" class="tradition-card">
-                        <span class="card-emoji">🌍</span>
+                    <button onclick="startChat('universal')" class="tradition-card">
+                        <div class="card-icon">🌍</div>
                         <div class="card-body">
                             <div class="card-title">Universal Bhakti</div>
                             <div class="card-desc">All Sampradayas · General Vaishnava Wisdom</div>
                         </div>
                     </button>
-
-                    <button onclick="selectTradition('krishna')" class="tradition-card">
-                        <span class="card-emoji">🐄</span>
+                    <button onclick="startChat('gita')" class="tradition-card">
+                        <div class="card-icon">📖</div>
+                        <div class="card-body">
+                            <div class="card-title">Bhagavad Gita Learning</div>
+                            <div class="card-desc">Chapter by Chapter · Sloka by Sloka</div>
+                        </div>
+                    </button>
+                    <button onclick="startChat('krishna')" class="tradition-card">
+                        <div class="card-icon">🐄</div>
                         <div class="card-body">
                             <div class="card-title">Krishna Bhakti</div>
                             <div class="card-desc">Radha-Krishna · Gaudiya Vaishnavism</div>
                         </div>
                     </button>
-
-                    <button onclick="selectTradition('ram')" class="tradition-card">
-                        <span class="card-emoji">🏹</span>
+                    <button onclick="startChat('ram')" class="tradition-card">
+                        <div class="card-icon">🏹</div>
                         <div class="card-body">
                             <div class="card-title">Rama Bhakti</div>
                             <div class="card-desc">Lord Rama · Hanuman · Ramayana</div>
                         </div>
                     </button>
-
-                    <button onclick="selectTradition('vallabha')" class="tradition-card">
-                        <span class="card-emoji">🌺</span>
+                    <button onclick="startChat('vallabha')" class="tradition-card">
+                        <div class="card-icon">🌺</div>
                         <div class="card-body">
                             <div class="card-title">Pushtimarg Bhakti</div>
                             <div class="card-desc">Vallabhacharya · Shuddhadvaita · Shrinathji</div>
                         </div>
                     </button>
-
-                    <button onclick="selectTradition('nimbarka')" class="tradition-card">
-                        <span class="card-emoji">🌼</span>
+                    <button onclick="startChat('nimbarka')" class="tradition-card">
+                        <div class="card-icon">🌼</div>
                         <div class="card-body">
                             <div class="card-title">Nimbarka Bhakti</div>
                             <div class="card-desc">Dvaitadvaita · Sri Radha-Krishna</div>
@@ -487,218 +790,259 @@
                     </button>
                 </div>
             </div>
-
-            <footer class="app-footer">
-                &copy; 2026 JMS AI Assistant | Made with <span class="heart">❤</span> by JMS Advisory
-            </footer>
+            <footer class="app-footer">&copy; 2026 | Made with <span class="heart">❤</span> by <span
+                    class="highlight">JMS Tech | Naavya.ai</span></footer>
         </div>
 
-        <!-- ═══ CHAT SCREEN ═══ -->
-        <div id="chat-screen">
-
-            <!-- Welcome hero -->
+        <!-- CHAT SCREEN -->
+        <div id="chat-screen" class="screen">
             <div id="chat-welcome" class="chat-welcome">
-                <div class="cw-icon">ॐ</div>
+                <!-- <div class="cw-icon">🪈</div> -->
                 <h2 class="cw-title heading-font">Jai Shree Krishna</h2>
-                <p class="cw-sub">
-                    You have selected the <span id="tradition-label" class="cw-tradition">Universal</span> tradition.
-                    Ask anything about Vaishnava theology, philosophy, history, or ritual practice. The discourse awaits.
-                </p>
+                <p class="cw-sub">You have selected the <strong id="tradition-label"
+                        style="color:#0d9488;">Universal</strong> path. Ask anything about Vaishnava wisdom.</p>
             </div>
-
-            <!-- Suggestions -->
-            <div id="suggestions">
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
-                    Explain Bhagavad Gita Chapter 2
-                </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
-                    Who is Lord Krishna?
-                </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
-                    Significance of Janmashtami
-                </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
-                    Tell me about Radha Krishna
-                </button>
-            </div>
-
-            <!-- Messages -->
+            <div id="suggestions"></div>
             <div id="messages"></div>
-
-            <!-- Input bar -->
             <div class="input-bar">
                 <textarea id="userInput" rows="1"
                     placeholder="Ask about Krishna, Gita, Bhakti... (Enter to send)"></textarea>
-                <button id="sendBtn" class="send-btn">
-                    <i class="fas fa-paper-plane btn-icon"></i>
-                    <span>Ask</span>
-                </button>
+                <button id="sendBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <footer class="app-footer">&copy; 2026 | Made with <span class="heart">❤</span> by <span
+                    class="highlight">JMS Tech | Naavya.ai</span></footer>
+        </div>
+    </div>
+
+    <!-- FEEDBACK MODAL -->
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon"><img src="{% static 'morpankh.svg' %}" alt="Icon"
+                    style="height: 50px; width: auto;"></div>
+            <h3 class="modal-title heading-font">Stay Connected</h3>
+            <p class="modal-desc">Share your details to receive spiritual updates and personalized guidance.</p>
+
+            <div class="rating-container">
+                <p style="font-size: 14px; font-weight: 600; color: #0f766e; margin-bottom: 8px;">Rate your experience
+                </p>
+                <div class="morpankh-rating" id="morpankhRating">
+                    <img src="{% static 'morpankh.svg' %}" class="rating-morpankh" data-value="1" onclick="setRating(1)"
+                        onmouseover="hoverRating(1)" onmouseout="resetRatingHover()">
+                    <img src="{% static 'morpankh.svg' %}" class="rating-morpankh" data-value="2" onclick="setRating(2)"
+                        onmouseover="hoverRating(2)" onmouseout="resetRatingHover()">
+                    <img src="{% static 'morpankh.svg' %}" class="rating-morpankh" data-value="3" onclick="setRating(3)"
+                        onmouseover="hoverRating(3)" onmouseout="resetRatingHover()">
+                    <img src="{% static 'morpankh.svg' %}" class="rating-morpankh" data-value="4" onclick="setRating(4)"
+                        onmouseover="hoverRating(4)" onmouseout="resetRatingHover()">
+                    <img src="{% static 'morpankh.svg' %}" class="rating-morpankh" data-value="5" onclick="setRating(5)"
+                        onmouseover="hoverRating(5)" onmouseout="resetRatingHover()">
+                </div>
             </div>
 
-            <footer class="app-footer">
-                &copy; 2026 JMS AI Assistant | Made with <span class="heart">❤</span> by JMS Advisory
-            </footer>
+            <input type="text" id="fbName" class="modal-input" placeholder="Your Name" />
+            <input type="text" id="fbPhone" class="modal-input" placeholder="Phone Number" />
+            <input type="email" id="fbEmail" class="modal-input" placeholder="Email Address" />
+            <button class="modal-btn" onclick="submitFeedback()">Submit 🙏</button>
+            <button class="skip-btn" onclick="closeFeedback()">Skip for now</button>
         </div>
-
     </div>
 
     <script>
         let selectedTradition = 'universal';
-        let hasInteracted = false;
+        let selectedLanguage = 'English';
+        let userMessageCount = 0;
+        let feedbackShown = false;
+        let suggestionsUsed = false;
+        let currentRating = 0;
 
-        function getCurrentTime() {
-            return new Date().toLocaleString('en-IN', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            }) + ' IST';
+        function setRating(rating) {
+            currentRating = rating;
+            updateRatingUI(rating, 'active');
         }
 
-        // Auto-resize textarea (capped at 4 lines)
-        function autoResizeTextarea(textarea) {
-            textarea.style.height = 'auto';
-            const newHeight = Math.min(textarea.scrollHeight, 120); // ~4 lines
-            textarea.style.height = newHeight + 'px';
+        function hoverRating(rating) {
+            updateRatingUI(rating, 'hovered');
+        }
+
+        function resetRatingHover() {
+            const morpankhs = document.querySelectorAll('.rating-morpankh');
+            morpankhs.forEach(m => m.classList.remove('hovered'));
+        }
+
+        function updateRatingUI(rating, className) {
+            const morpankhs = document.querySelectorAll('.rating-morpankh');
+            morpankhs.forEach((m, index) => {
+                if (className === 'active') m.classList.remove('active', 'hovered');
+
+                if (index < rating) {
+                    m.classList.add(className);
+                }
+            });
+            // Re-apply active class on hover out if needed
+            if (className === 'hovered' && currentRating > 0) {
+                morpankhs.forEach((m, index) => {
+                    if (index < currentRating) m.classList.add('active');
+                });
+            }
         }
 
         const traditionNames = {
-            'universal': 'Universal Bhakti',
-            'krishna': 'Krishna Bhakti',
-            'ram': 'Rama Bhakti',
-            'vallabha': 'Pushtimarg Bhakti',
-            'nimbarka': 'Nimbarka Bhakti'
+            'universal': 'Universal Bhakti', 'gita': 'Bhagavad Gita',
+            'krishna': 'Krishna Bhakti', 'ram': 'Rama Bhakti',
+            'vallabha': 'Pushtimarg Bhakti', 'nimbarka': 'Nimbarka Bhakti'
         };
 
-        function selectTradition(tradition) {
-            selectedTradition = tradition;
-            document.getElementById('selection-screen').style.display = 'none';
-            document.getElementById('chat-screen').classList.add('active');
+        const traditionSuggestions = {
+            'universal': ['What are the 4 Vaishnava Sampradayas?', 'Explain the concept of Bhakti', 'Who is Vishnu?', 'What is Moksha?'],
+            'gita': ['Explain Chapter 2 of Bhagavad Gita', 'What is Karma Yoga?', 'Meaning of BG 4.7 sloka', 'Difference between Atma and Paramatma'],
+            'krishna': ['Who is Radha to Krishna?', 'Tell me about Vrindavan Leela', 'Explain Rasa Lila significance', 'Teachings of Chaitanya Mahaprabhu'],
+            'ram': ['Why is Lord Rama called Maryada Purushottam?', 'Significance of Hanuman Chalisa', 'Tell me about Sita Mata', 'Lessons from Lanka Kand'],
+            'vallabha': ['What is Pushti Marg?', 'Tell me about Shrinathji', 'Explain Shuddhadvaita philosophy', 'Who are the Ashta-Chhap poets?'],
+            'nimbarka': ['What is Dvaitadvaita?', 'Nimbarkacharya teachings on Radha-Krishna', 'Explain Kumara Sampradaya', 'Role of Guru in Nimbarka tradition']
+        };
 
-            // Update nav breadcrumb
-            const bc = document.getElementById('nav-breadcrumb');
-            bc.innerHTML = `<span class="sep">›</span> <span class="active">${traditionNames[tradition] || 'Vaishnava Bhakti'}</span>`;
-
-            // Update welcome tradition label
-            const labelMap = { universal: 'Universal', krishna: 'Krishna', ram: 'Rama', vallabha: 'Pushtimarg', nimbarka: 'Nimbarka' };
-            document.getElementById('tradition-label').textContent = labelMap[tradition] || 'Universal';
-
-            initChat();
+        function renderSuggestions(tradition) {
+            const container = document.getElementById('suggestions');
+            container.innerHTML = '';
+            const items = traditionSuggestions[tradition] || traditionSuggestions['universal'];
+            items.forEach(q => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-chip';
+                btn.textContent = q;
+                btn.onclick = () => { hideSuggestions(); addMessage(q, true); callAPI(q); };
+                container.appendChild(btn);
+            });
+            container.style.display = 'flex';
         }
 
         function hideSuggestions() {
             document.getElementById('suggestions').style.display = 'none';
-            document.getElementById('chat-welcome').style.display = 'none';
+            suggestionsUsed = true;
+        }
+
+        function startChat(tradition) {
+            selectedTradition = tradition;
+            selectedLanguage = document.getElementById('languageSelect').value;
+            suggestionsUsed = false;
+            document.getElementById('selection-screen').classList.remove('active');
+            document.getElementById('chat-screen').classList.add('active');
+            document.getElementById('homeBtn').style.display = 'block';
+            document.getElementById('tradition-label').textContent = traditionNames[tradition] || 'Universal';
+            document.getElementById('messages').innerHTML = '';
+            let g = "Jai Shree Krishna! 🙏 How may I assist you today?";
+            if (selectedLanguage === 'Hindi') g = "जय श्री कृष्ण! 🙏 मैं आज आपकी कैसे सहायता कर सकता हूँ?";
+            if (selectedLanguage === 'Gujarati') g = "જય શ્રી કૃષ્ણ! 🙏 હું આજે તમારી કેવી રીતે મદદ કરી શકું?";
+            addMessage(g, false);
+            renderSuggestions(tradition);
+        }
+
+        function goHome() {
+            document.getElementById('chat-screen').classList.remove('active');
+            document.getElementById('selection-screen').classList.add('active');
+            document.getElementById('homeBtn').style.display = 'none';
+            document.getElementById('chat-welcome').style.display = '';
         }
 
         function addMessage(content, isUser = false) {
-            const container = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = `msg-row ${isUser ? 'user' : 'bot'}`;
-
-            div.innerHTML = `<div class="msg-bubble">${content}</div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            const c = document.getElementById('messages');
+            const row = document.createElement('div');
+            row.className = `msg-row ${isUser ? 'user' : 'bot'}`;
+            if (!isUser) {
+                row.innerHTML = `<div class="avatar"><img src="{% static 'morpankh.svg' %}" style="height: 20px; width: auto;"></div><div class="msg-bubble">${marked.parse(content)}</div>`;
+            } else {
+                row.innerHTML = `<div class="msg-bubble">${content}</div><div class="avatar">👤</div>`;
+            }
+            c.appendChild(row); c.scrollTop = c.scrollHeight;
+            return row.querySelector('.msg-bubble');
         }
 
         function showTyping() {
-            const container = document.getElementById('messages');
-            const typing = document.createElement('div');
-            typing.id = 'typing';
-            typing.className = "msg-row bot";
-            typing.innerHTML = `<div class="msg-bubble">Vaishnav GPT is thinking <span style="animation: pulse 1.5s infinite">...</span></div>`;
-            container.appendChild(typing);
-            container.scrollTop = container.scrollHeight;
-            return typing;
+            const c = document.getElementById('messages');
+            const row = document.createElement('div');
+            row.id = 'typing'; row.className = "msg-row bot";
+            row.innerHTML = `<div class="avatar">🪈</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+            c.appendChild(row); c.scrollTop = c.scrollHeight;
+            return row;
         }
 
         async function callAPI(message) {
+            if (!suggestionsUsed) hideSuggestions();
             const typing = showTyping();
-            if (!hasInteracted) {
-                hasInteracted = true;
-                hideSuggestions();
-            }
-
+            document.getElementById('chat-welcome').style.display = 'none';
             try {
-                const res = await fetch('/api/vaishnav-bot/', {
+                const response = await fetch('/api/vaishnav-bot/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        tradition: selectedTradition
-                    })
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ message, tradition: selectedTradition, language: selectedLanguage })
                 });
-
-                const data = await res.json();
                 typing.remove();
-                addMessage(data.reply || "Jai Shree Krishna! 🙏", false);
-            } catch (err) {
-                typing.remove();
-                addMessage("Sorry, I couldn't connect. Please try again.");
-            }
+                const cont = document.getElementById('messages');
+                const row = document.createElement('div'); row.className = "msg-row bot";
+                const av = document.createElement('div'); av.className = "avatar"; av.innerHTML = `<img src="{% static 'morpankh.svg' %}" style="height: 20px; width: auto;">`;
+                const bubble = document.createElement('div'); bubble.className = "msg-bubble streaming blinking-cursor";
+                row.appendChild(av); row.appendChild(bubble); cont.appendChild(row);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let fullText = "";
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    fullText += decoder.decode(value, { stream: true });
+                    bubble.innerHTML = marked.parse(fullText);
+                    cont.scrollTop = cont.scrollHeight;
+                }
+                bubble.classList.remove('streaming', 'blinking-cursor');
+                userMessageCount++;
+                if (userMessageCount === 3 && !feedbackShown) {
+                    setTimeout(() => { document.getElementById('feedbackModal').classList.add('active'); feedbackShown = true; }, 1500);
+                }
+            } catch (err) { typing.remove(); addMessage("Sorry, I couldn't connect. Please try again."); }
         }
 
-        window.sendQuickPrompt = function(btn) {
-            const text = btn.textContent.trim();
-            addMessage(text, true);
-            callAPI(text);
-        };
+        async function submitFeedback() {
+            const name = document.getElementById('fbName').value.trim();
+            const phone = document.getElementById('fbPhone').value.trim();
+            const email = document.getElementById('fbEmail').value.trim();
+            if (!name || (!phone && !email) || currentRating === 0) {
+                alert("Please provide a rating, your name, and either phone or email.");
+                return;
+            }
+            try {
+                await fetch('/api/submit-feedback/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ name, phone, email, rating: currentRating })
+                });
+            } catch (e) { console.error(e); }
+            closeFeedback();
+        }
+
+        function closeFeedback() { document.getElementById('feedbackModal').classList.remove('active'); }
 
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const msg = input.value.trim();
             if (!msg) return;
-            addMessage(msg, true);
-            input.value = '';
-            callAPI(msg);
-        }
-
-        function initChat() {
-            const messages = document.getElementById('messages');
-            messages.innerHTML = '';
-            addMessage("Jai Shree Krishna! 🙏 How may I serve you today in the path of Bhakti?", false);
+            if (!suggestionsUsed) hideSuggestions();
+            addMessage(msg, true); input.value = ''; callAPI(msg);
         }
 
         function getCookie(name) {
-            let cookieValue = null;
+            let v = null;
             if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+                for (const c of document.cookie.split(';')) {
+                    const t = c.trim();
+                    if (t.substring(0, name.length + 1) === (name + '=')) { v = decodeURIComponent(t.substring(name.length + 1)); break; }
                 }
             }
-            return cookieValue;
+            return v;
         }
 
-        // Event Listeners
-        const textarea = document.getElementById('userInput');
-        textarea.addEventListener('input', () => autoResizeTextarea(textarea));
-        document.getElementById('sendBtn').addEventListener('click', () => {
-            sendMessage();
-            // Reset height after send
-            setTimeout(() => {
-                textarea.style.height = 'auto';
-            }, 10);
-        });
-        textarea.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-                // Reset height after send
-                setTimeout(() => {
-                    textarea.style.height = 'auto';
-                }, 10);
-            }
-        });
-
-        window.onload = () => {
-            document.getElementById('session-time').textContent = getCurrentTime();
-        };
+        const ta = document.getElementById('userInput');
+        ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
+        document.getElementById('sendBtn').addEventListener('click', () => { sendMessage(); setTimeout(() => ta.style.height = 'auto', 10); });
+        ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); setTimeout(() => ta.style.height = 'auto', 10); } });
     </script>
 </body>
+
 </html>
