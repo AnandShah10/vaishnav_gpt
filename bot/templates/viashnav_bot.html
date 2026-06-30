@@ -16,182 +16,206 @@
         body { font-family: 'Poppins', sans-serif; }
         .heading-font { font-family: 'Playfair Display', serif; }
 
-        .suggestion-chip { 
-            transition: all 0.3s ease; 
+        .tradition-card { transition: all 0.3s ease; }
+        .tradition-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .suggestion-chip {
+            transition: all 0.3s ease;
         }
         .suggestion-chip:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px -5px rgb(245 158 11 / 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(245 158 11 / 0.15);
         }
 
-        .message-content {
-            line-height: 1.7;
-        }
-        
-        .message-content a {
-            color: #10b981;
-            text-decoration: underline;
+        .logo-glow {
+            animation: glow 3s ease-in-out infinite alternate;
         }
 
-        #messages::-webkit-scrollbar { width: 6px; }
-        #messages::-webkit-scrollbar-thumb {
-            background: #d97706;
-            border-radius: 20px;
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fcd34d; }
+            to { text-shadow: 0 0 25px #f59e0b; }
         }
     </style>
 </head>
 
-<body class="bg-[#f8f1e3] min-h-screen flex flex-col">
+<body class="bg-[#f8f1e3] min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white shadow-lg">
-        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center border border-white/30">
-                    <img src="{% static 'logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+    <div class="max-w-2xl mx-auto min-h-screen flex flex-col">
+
+        <!-- Selection Screen -->
+        <div id="selection-screen" class="flex-1">
+            <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white py-10 text-center">
+                <div class="mx-auto w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-6xl mb-6 shadow-2xl logo-glow">
+                    ॐ
                 </div>
-                <div>
-                    <h1 class="text-2xl font-bold">Vaishnav GPT</h1>
-                    <p class="text-xs text-amber-100">Divine Wisdom • Bhakti</p>
+                <h1 class="text-4xl font-bold heading-font tracking-tight">Vaishnav GPT</h1>
+                <p class="text-amber-100 mt-2 text-lg">Divine Wisdom &amp; Pure Bhakti</p>
+            </header>
+
+            <div class="p-6">
+                <div class="bg-white rounded-3xl shadow-2xl p-8">
+                    <div class="text-center mb-8">
+                        <p class="text-sm text-amber-600">Session initiated: <span id="session-time" class="font-medium"></span></p>
+                        <h2 class="heading-font text-3xl text-amber-900 mt-6">Select Your Tradition</h2>
+                        <p class="text-amber-600 mt-2">Choose the path that resonates with your soul</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <button onclick="selectTradition('universal')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-semibold text-xl">Universal Bhakti</h3>
+                                    <p class="text-amber-600 text-sm mt-1">All Sampradayas • General Vaishnava Wisdom</p>
+                                </div>
+                                <span class="text-4xl">🌍</span>
+                            </div>
+                        </button>
+
+                        <button onclick="selectTradition('krishna')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-semibold text-xl">Krishna Bhakti</h3>
+                                    <p class="text-amber-600 text-sm mt-1">Radha-Krishna • Gaudiya Vaishnavism</p>
+                                </div>
+                                <span class="text-4xl">🐄</span>
+                            </div>
+                        </button>
+
+                        <button onclick="selectTradition('ram')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-semibold text-xl">Rama Bhakti</h3>
+                                    <p class="text-amber-600 text-sm mt-1">Lord Rama • Hanuman • Ramayana</p>
+                                </div>
+                                <span class="text-4xl">🏹</span>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <div class="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 pt-8">
+        <!-- Chat Screen -->
+        <div id="chat-screen" class="hidden flex-1 flex flex-col">
+            <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white py-4 px-6 flex items-center gap-3 shadow-lg">
+                <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-3xl logo-glow">ॐ</div>
+                <div class="flex-1">
+                    <h1 class="font-bold">Vaishnav GPT</h1>
+                    <p id="active-tradition" class="text-xs text-amber-100"></p>
+                </div>
+            </header>
 
-        <!-- Welcome -->
-        <div class="text-center mb-10">
-            <div class="mx-auto w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-3xl flex items-center justify-center text-5xl shadow-xl mb-5">
-                ॐ
-            </div>
-            <h2 class="heading-font text-4xl text-amber-900">Jai Shree Krishna</h2>
-            <p class="text-amber-700 mt-2">Ask anything about Krishna, Gita, Bhakti, or Vaishnav tradition.</p>
-        </div>
-
-        <!-- Suggestions -->
-        <div id="suggestions" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-10">
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                Explain Bhagavad Gita Chapter 2
-            </button>
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                Who is Lord Krishna?
-            </button>
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                Significance of Janmashtami
-            </button>
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                Tell me about Radha Krishna
-            </button>
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                What is Bhakti Yoga?
-            </button>
-            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
-                Popular Vaishnav Bhajans
-            </button>
-        </div>
-
-        <!-- Messages Area -->
-        <div id="messages" class="flex-1 overflow-y-auto bg-white/80 backdrop-blur rounded-3xl p-6 space-y-6 border border-amber-100 shadow-inner mb-6">
-        </div>
-
-        <!-- Input -->
-        <div class="bg-white rounded-3xl shadow-xl border border-amber-100 p-2">
-            <div class="flex gap-3 items-center px-4">
-                <textarea id="userInput" rows="1"
-                    class="flex-1 resize-none bg-transparent focus:outline-none py-4 text-base placeholder:text-amber-400"
-                    placeholder="Ask about Vaishnav philosophy, Krishna leela, rituals..."></textarea>
-                
-                <button id="sendBtn" 
-                    class="bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 w-12 h-12 flex items-center justify-center rounded-2xl text-white shadow transition-all active:scale-95">
-                    <i class="fas fa-paper-plane"></i>
+            <!-- Suggestions -->
+            <div id="suggestions" class="px-6 pt-6 grid grid-cols-2 gap-3">
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                    Explain Bhagavad Gita Chapter 2
                 </button>
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                    Who is Lord Krishna?
+                </button>
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                    Significance of Janmashtami
+                </button>
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                    Tell me about Radha Krishna
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-white/70 backdrop-blur min-h-0"></div>
+
+            <!-- Input -->
+            <div class="p-4 bg-white border-t border-amber-100">
+                <div class="flex gap-3 items-center">
+                    <textarea id="userInput" rows="1"
+                        class="flex-1 resize-none bg-gray-50 border border-amber-200 rounded-3xl px-6 py-4 focus:outline-none focus:border-amber-500 text-base"
+                        placeholder="Ask about Krishna, Gita, Bhakti..."></textarea>
+                    <button id="sendBtn"
+                        class="bg-amber-600 hover:bg-amber-700 text-white w-12 h-12 rounded-3xl flex items-center justify-center transition-all active:scale-95">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const messagesContainer = document.getElementById('messages');
-        const suggestionsContainer = document.getElementById('suggestions');
-        const input = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-
+        let selectedTradition = 'universal';
         let hasInteracted = false;
 
-        function log(message) {
-            console.log(`[VaishnavGPT] ${message}`);
+        function getCurrentTime() {
+            return new Date().toLocaleString('en-IN', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+        }
+
+        function selectTradition(tradition) {
+            selectedTradition = tradition;
+            document.getElementById('selection-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
+            document.getElementById('active-tradition').textContent = 
+                tradition === 'universal' ? 'Universal Bhakti' : 
+                tradition === 'krishna' ? 'Krishna Bhakti' : 'Rama Bhakti';
+            initChat();
+        }
+
+        function hideSuggestions() {
+            document.getElementById('suggestions').style.display = 'none';
         }
 
         function addMessage(content, isUser = false) {
+            const container = document.getElementById('messages');
             const div = document.createElement('div');
             div.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
 
             if (isUser) {
-                div.innerHTML = `
-                    <div class="max-w-[80%] bg-amber-600 text-white rounded-3xl rounded-tr-none px-6 py-4">
-                        <p>${content}</p>
-                    </div>
-                `;
+                div.innerHTML = `<div class="max-w-[80%] bg-amber-600 text-white rounded-3xl rounded-tr-none px-6 py-4"><p>${content}</p></div>`;
             } else {
-                div.innerHTML = `
-                    <div class="max-w-[80%] bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4 shadow">
-                        <div class="message-content text-amber-800 prose prose-amber">${content}</div>
-                    </div>
-                `;
+                div.innerHTML = `<div class="max-w-[80%] bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4 shadow"><div class="message-content text-amber-800">${content}</div></div>`;
             }
-            messagesContainer.appendChild(div);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
 
         function showTyping() {
+            const container = document.getElementById('messages');
             const typing = document.createElement('div');
             typing.id = 'typing';
             typing.className = "flex justify-start";
-            typing.innerHTML = `
-                <div class="bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4">
-                    Vaishnav GPT is thinking <span class="animate-pulse">...</span>
-                </div>
-            `;
-            messagesContainer.appendChild(typing);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            typing.innerHTML = `<div class="bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4">Vaishnav GPT is thinking <span class="animate-pulse">...</span></div>`;
+            container.appendChild(typing);
+            container.scrollTop = container.scrollHeight;
             return typing;
-        }
-
-        function hideSuggestions() {
-            if (suggestionsContainer) {
-                suggestionsContainer.style.display = 'none';
-            }
         }
 
         async function callAPI(message) {
             const typing = showTyping();
-
-            // Hide suggestions after first interaction
             if (!hasInteracted) {
                 hasInteracted = true;
                 hideSuggestions();
             }
 
             try {
-                const response = await fetch('/api/vaishnav-bot/', {
+                const res = await fetch('/api/vaishnav-bot/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({
+                        message: message,
+                        tradition: selectedTradition
+                    })
                 });
 
-                const data = await response.json();
+                const data = await res.json();
                 typing.remove();
-
-                if (data.reply) {
-                    addMessage(data.reply, false);
-                } else {
-                    addMessage("Jai Shree Krishna! 🙏", false);
-                }
-            } catch (error) {
-                console.error("Error:", error);
+                addMessage(data.reply || "Jai Shree Krishna! 🙏", false);
+            } catch (err) {
                 typing.remove();
                 addMessage("Sorry, I couldn't connect. Please try again.");
             }
@@ -204,12 +228,18 @@
         };
 
         async function sendMessage() {
+            const input = document.getElementById('userInput');
             const msg = input.value.trim();
             if (!msg) return;
-
             addMessage(msg, true);
             input.value = '';
             callAPI(msg);
+        }
+
+        function initChat() {
+            const messages = document.getElementById('messages');
+            messages.innerHTML = '';
+            addMessage("Jai Shree Krishna! 🙏 How may I serve you today in the path of Bhakti?", false);
         }
 
         function getCookie(name) {
@@ -227,19 +257,17 @@
             return cookieValue;
         }
 
-        // Events
-        sendBtn.addEventListener('click', sendMessage);
-        input.addEventListener('keydown', e => {
+        // Event Listeners
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('userInput').addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        // Initialize
         window.onload = () => {
-            log("Vaishnav GPT loaded");
-            addMessage("Jai Shree Krishna! 🙏 How may I serve you today?", false);
+            document.getElementById('session-time').textContent = getCurrentTime();
         };
     </script>
 </body>

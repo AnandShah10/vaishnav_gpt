@@ -60,13 +60,31 @@ def markdown_to_html(text: str) -> str:
     
     return text
 
+TRADITION_PROFILES = {
+    "universal": "USER_PROFILE: Universal Vaishnava - General Bhakti covering all four Sampradayas with emphasis on core principles.",
+    
+    "krishna": """USER_PROFILE: Krishna Bhakti (Gaudiya / Brahma Sampradaya) - Deep expertise in Radha-Krishna, Chaitanya Mahaprabhu, Srimad Bhagavatam, Chaitanya Charitamrita, and Achintya Bheda Abheda philosophy.""",
+    
+    "ram": """USER_PROFILE: Rama Bhakti (Sri / Ramanandi Sampradaya) - Expertise in Lord Rama, Sita-Rama, Hanuman, Vishishtadvaita philosophy, and Ramananda tradition.""",
+    
+    "vallabha": """USER_PROFILE: Pushtimarg (Rudra Sampradaya - Vallabhacharya) - Pure Monism (Shuddhadvaita), Pushti Marg, Shrinathji Sewa, and Ashta-Chhap poets.""",
+    
+    "nimbarka": """USER_PROFILE: Nimbarka Sampradaya (Kumara Sampradaya) - Dvaitadvaita philosophy with primary focus on eternal Sri Radha-Krishna as Supreme Absolute."""
+}
+
+def get_system_prompt_with_tradition(tradition):
+    profile = TRADITION_PROFILES.get(tradition, TRADITION_PROFILES["universal"])
+    return f"{SYSTEM_PROMPT}\n\n{profile}"
+
 @csrf_exempt
 def vaishnav_bot(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             user_message = data.get("message", "").strip()
-            session_key = "test_chat_history"
+            tradition = data.get("tradition", "universal")   # From frontend selection
+
+            session_key = f"vaishnav_chat_{tradition}"
 
             if session_key not in request.session:
                 now = timezone.now()
@@ -74,11 +92,13 @@ def vaishnav_bot(request):
                 time_str = now.strftime("%H:%M UTC")
                 date_prompt = (
                     f"Current date and time: {date_str} at {time_str}. "
-                    f"Use this only for well-known calendar associations and devotional guidance. "
-                    f"Never invent specific astronomical timings."
+                    "Use this only for well-known calendar associations."
                 )
+
+                full_system_prompt = get_system_prompt_with_tradition(tradition)
+
                 history = [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": full_system_prompt},
                     {"role": "system", "content": date_prompt}
                 ]
             else:
@@ -91,19 +111,28 @@ def vaishnav_bot(request):
                 messages=history,
             )
 
-            msg = response.choices[0].message  # ChatCompletionMessage object
-            bot_reply = msg.content.strip() if msg.content else ""
+            bot_reply = response.choices[0].message.content.strip()
             bot_reply = markdown_to_html(bot_reply)
             history.append({"role": "assistant", "content": bot_reply})
-            Message.objects.create(user_message=user_message,bot_reply=bot_reply,timestamp=timezone.now())
-            
-            # Persist updated history (including date context) to session
+            # Save to session
             request.session[session_key] = history
             request.session.modified = True
-            return JsonResponse({"reply": bot_reply})
+
+            # Optional: Log to DB
+            Message.objects.create(
+                user_message=user_message,
+                bot_reply=bot_reply,
+                timestamp=timezone.now(),
+                tradition=tradition
+            )
+
+            return JsonResponse({
+                "reply": bot_reply,
+                "tradition": tradition
+            })
 
         except Exception as e:
-            print(e)
-            return JsonResponse({"reply": "Sorry! I am not able to answer that."})
+            print("Error:", e)
+            return JsonResponse({"reply": "Sorry! I am not able to answer that at the moment."})
     request.session.flush()
     return render(request,"viashnav_bot.html")
