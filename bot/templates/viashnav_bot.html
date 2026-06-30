@@ -1,456 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-{%load static%}
+{% load static %}
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Vaishnav GPT</title>
     <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
-    <link rel="apple-touch-icon" href="{% static 'logo.png' %}">
-    <!-- Fonts - Enhanced for Sanskriti -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Playfair+Display:wght@700&amp;family=Noto+Sans+Gujarati:wght@400;700&amp;family=Noto+Sans+Devanagari:wght@400;700&amp;display=swap"
-        rel="stylesheet">
 
-    <!-- Tailwind + Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <script>
-        // Tailwind config for Vaishnava theme
-        tailwind.config = {
-            content: [],
-            theme: {
-                extend: {
-                    colors: {
-                        saffron: {
-                            50: '#fff7ed',
-                            500: '#f97316',
-                            700: '#c2410c',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
-        body {
-            font-family: 'Poppins', 'Noto Sans Gujarati', 'Noto Sans Devanagari', sans-serif;
-        }
+        body { font-family: 'Poppins', sans-serif; }
+        .heading-font { font-family: 'Playfair Display', serif; }
 
-        h1, .devotional-header {
-            font-family: 'Playfair Display', 'Noto Sans Devanagari', serif;
+        .suggestion-chip { 
+            transition: all 0.3s ease; 
         }
-
-        /* Hidden Scrollbar - Clean modern look (still scrollable) */
-        #messages {
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
-        }
-        #messages::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
-
-        /* Typing Animation - More serene */
-        .typing span {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            margin: 0 4px;
-            background: #c2410c;
-            border-radius: 50%;
-            animation: typingBounce 1.6s infinite ease-in-out;
-        }
-
-        .typing span:nth-child(2) { animation-delay: 0.2s; }
-        .typing span:nth-child(3) { animation-delay: 0.5s; }
-
-        @keyframes typingBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-9px); }
-        }
-
-        /* Vaishnava Sacred Background - More ethereal & presentable */
-        .bg-chat {
-            background: linear-gradient(135deg, #fff7ed 0%, #fef3e8 20%, #fdf4e3 45%, #ecfdf5 75%, #f0fdf4 100%);
-            background-attachment: fixed;
-            position: relative;
-        }
-
-        .bg-chat::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.08) 0%, transparent 60%),
-                radial-gradient(circle at 75% 65%, rgba(234, 88, 12, 0.07) 0%, transparent 55%),
-                radial-gradient(circle at 40% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
-                url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2790%27 height=%2790%27 viewBox=%270 0 90 90%27%3E%3Ctext y=%2755%27 font-size=%2732%27 fill=%27%23d97706%27 opacity=%270.035%27%3E%F0%9F%AA%94%3C/text%3E%3C/svg%27') repeat;
-            pointer-events: none;
-            z-index: 0;
-            animation: gentleFloat 32s infinite linear;
-        }
-
-        @keyframes gentleFloat {
-            0% { background-position: 0 0; }
-            100% { background-position: 90px 90px; }
-        }
-
-        .feedback-btn {
-            position: relative;
-            padding: 8px 10px;
-            border-radius: 9999px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: transparent;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .feedback-btn:hover {
-            background: rgba(249, 115, 22, 0.15);
-            transform: scale(1.08) translateY(-1px);
-        }
-
-        .feedback-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Selected state - Devotional colors */
-        .feedback-btn[data-feedback="like"] i {
-            color: #f59e0b !important;
-            animation: scaleHeart 0.6s ease;
-        }
-
-        .feedback-btn[data-feedback="dislike"] i {
-            color: #9f1239 !important;
-        }
-
-        @keyframes scaleHeart {
-            0% { transform: scale(0.8); }
-            50% { transform: scale(1.35); }
-            100% { transform: scale(1); }
-        }
-
-        /* Enhanced, more presentable Message Bubbles */
-        .bot-bubble {
-            background: #fffbeb;
-            border: 2px solid #fed7aa;
-            box-shadow: 0 15px 25px -5px rgb(245 158 11 / 0.12),
-                        0 8px 10px -6px rgb(245 158 11 / 0.1);
-            position: relative;
-            border-radius: 28px;
-            border-top-left-radius: 6px;
-        }
-
-        .bot-bubble::before {
-            content: '📿';
-            position: absolute;
-            left: -22px;
-            top: 22px;
-            font-size: 26px;
-            opacity: 0.75;
-            filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.1));
-        }
-
-        .user-bubble {
-            background: linear-gradient(135deg, #c2410c, #9a3412);
-            color: #fffbeb;
-            box-shadow: 0 15px 25px -5px rgb(185 28 28 / 0.35),
-                        0 8px 10px -6px rgb(185 28 28 / 0.25);
-            border-radius: 28px;
-            border-top-right-radius: 6px;
-        }
-
-        /* Refined message text */
-        .message-text {
-            font-size: 15.5px;
-            line-height: 1.65;
-        }
-
-        /* JainGPT-inspired UI for Vaishnav GPT - Fully Responsive for PC */
-        .hero {
-            text-align: center;
-        }
-
-        .symbol {
-            font-size: 4.2rem;
-            line-height: 1;
-            margin-bottom: 1.25rem;
-            display: inline-block;
-            filter: drop-shadow(0 10px 15px rgb(180 83 9 / 0.2));
-        }
-
-        .suggestion-chip {
-            background: #f5e8d3;
-            color: #5c4033;
-            border: 2px solid #d4b38a;
-            padding: 10px 20px;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgb(180 83 9 / 0.1);
-            white-space: nowrap;
-        }
-
         .suggestion-chip:hover {
-            background: #e8d5b7;
-            transform: translateY(-3px) scale(1.03);
-            border-color: #c9a16f;
-            box-shadow: 0 10px 15px -3px rgb(180 83 9 / 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgb(245 158 11 / 0.2);
         }
 
-        @media (min-width: 1024px) {
-            .suggestion-chip {
-                padding: 12px 26px;
-                font-size: 0.96rem;
-            }
+        .message-content {
+            line-height: 1.7;
+        }
+        
+        .message-content a {
+            color: #10b981;
+            text-decoration: underline;
         }
 
-        .input-bar {
-            background: white;
-            border-radius: 9999px;
-            box-shadow: 0 10px 25px -5px rgb(180 83 9 / 0.15),
-                        0 4px 6px -4px rgb(0 0 0 / 0.1);
-            border: 3px solid #d97706;
-        }
-
-        /* PC-Optimized message bubbles */
-        @media (min-width: 1024px) {
-            .bot-bubble, .user-bubble {
-                max-width: 78%;
-            }
-            .message-text {
-                font-size: 16px;
-                line-height: 1.7;
-            }
-        }
-
-        .ask-btn {
-            background: linear-gradient(135deg, #b45309, #854d0e);
-            color: white;
-            padding: 12px 28px;
-            border-radius: 9999px;
-            font-weight: 600;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            transition: all 0.2s ease;
-        }
-
-        .ask-btn:hover {
-            transform: scale(1.05);
-            background: linear-gradient(135deg, #854d0e, #713f12);
-        }
-
-        .header-nav {
-            background: linear-gradient(to right, #451a03, #78350f);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        /* Ensure perfect full-height layout on PC */
-        .flex-1.min-h-0 {
-            min-height: 0;
+        #messages::-webkit-scrollbar { width: 6px; }
+        #messages::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 20px;
         }
     </style>
+</head>
 
+<body class="bg-[#f8f1e3] min-h-screen flex flex-col">
 
-<body class="bg-[#f9f4eb] min-h-screen flex flex-col overflow-hidden font-sans">
-
-    <!-- Dark Top Nav like JainGPT (Responsive + PC Centered) -->
-    <header class="header-nav text-white py-3 px-4 sm:py-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs sm:text-sm max-w-5xl mx-auto w-full">
-        <div class="flex items-center gap-3 sm:gap-4">
-            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-amber-100 text-amber-900 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner">🪔</div>
-            <div>
-                <span class="font-bold text-xl sm:text-2xl tracking-tight">Vaishnav GPT</span>
-                <span class="ml-2 sm:ml-3 text-amber-300 text-[10px] sm:text-xs font-medium tracking-widest">• BHAKTI TRADITION</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-3 sm:gap-4">
-            <div class="bg-white/10 text-amber-100 text-[10px] sm:text-xs px-3 sm:px-4 py-1.5 rounded-3xl flex items-center gap-2">
-                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span class="hidden sm:inline">Connected to Shastra</span>
-            </div>
-            <div onclick="window.location.reload()" 
-                 class="bg-white/10 hover:bg-white/20 cursor-pointer text-amber-100 text-[10px] sm:text-xs px-4 sm:px-5 py-1.5 rounded-3xl flex items-center gap-2 transition-colors">
-                <i class="fas fa-sync-alt text-xs"></i>
-                <span class="hidden sm:inline">New Conversation</span>
-                <span class="sm:hidden">New</span>
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white shadow-lg">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center border border-white/30">
+                    <img src="{% static 'logo.png' %}" alt="Logo" class="w-8 h-8 object-contain">
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">Vaishnav GPT</h1>
+                    <p class="text-xs text-amber-100">Divine Wisdom • Bhakti</p>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Container (Fully Responsive for PC + Mobile - Fixed Height Flow) -->
-    <div class="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full relative z-10 overflow-hidden px-3 sm:px-4 lg:px-6">
-        <!-- Hero / Welcome Section (matches image - Fully Responsive for PC) -->
-        <div id="hero" class="hero flex-1 flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 py-8 lg:py-16">
-            <div class="symbol text-[4.2rem] sm:text-[5.5rem] lg:text-[6.8rem]">ॐ</div>
-            <h1 class="devotional-header text-[2.1rem] sm:text-5xl lg:text-6xl font-bold text-amber-900 tracking-tighter mb-4 lg:mb-6">Jai Shree Krishna</h1>
-            <p class="max-w-lg lg:max-w-xl text-amber-700/90 text-base sm:text-[15.2px] leading-relaxed mb-10 lg:mb-14 px-4 text-center">
-                You have entered the Vaishnava tradition. Ask anything about bhakti, dharma, the Bhagavad Gita, 
-                Puranas, Krishna leelas, or the eternal truths of the Shastras. The discourse awaits.
-            </p>
-            
-            <!-- Suggestion Chips -->
-            <div class="flex flex-wrap justify-center max-w-3xl gap-x-3 gap-y-4 px-2">
-                <button onclick="useSuggestion(this)" 
-                        class="suggestion-chip">Explain Bhakti Yoga</button>
-                <button onclick="useSuggestion(this)" 
-                        class="suggestion-chip">Significance of Bhagavad Gita</button>
-                <button onclick="useSuggestion(this)" 
-                        class="suggestion-chip">Krishna's Divine Leelas</button>
-                <button onclick="useSuggestion(this)" 
-                        class="suggestion-chip">The 4 Purusharthas</button>
-                <button onclick="useSuggestion(this)" 
-                        class="suggestion-chip">Hare Krishna Mantra</button>
+    <div class="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 pt-8">
+
+        <!-- Welcome -->
+        <div class="text-center mb-10">
+            <div class="mx-auto w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-3xl flex items-center justify-center text-5xl shadow-xl mb-5">
+                ॐ
             </div>
+            <h2 class="heading-font text-4xl text-amber-900">Jai Shree Krishna</h2>
+            <p class="text-amber-700 mt-2">Ask anything about Krishna, Gita, Bhakti, or Vaishnav tradition.</p>
         </div>
 
-        <!-- Messages Area (revealed after first interaction - PC Optimized) -->
-        <div id="messages" class="hidden flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 lg:px-12 py-8 lg:py-12 space-y-8 lg:space-y-12 bg-white/80 backdrop-blur-md border-t border-amber-100">
+        <!-- Suggestions -->
+        <div id="suggestions" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-10">
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                Explain Bhagavad Gita Chapter 2
+            </button>
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                Who is Lord Krishna?
+            </button>
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                Significance of Janmashtami
+            </button>
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                Tell me about Radha Krishna
+            </button>
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                What is Bhakti Yoga?
+            </button>
+            <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium">
+                Popular Vaishnav Bhajans
+            </button>
         </div>
 
-        <!-- Typing Indicator (PC Optimized) -->
-        <div id="typing" class="hidden px-4 sm:px-8 lg:px-12 py-5 border-t bg-white/80">
-            <div class="max-w-[860px] mx-auto flex gap-4">
-                <div class="w-9 h-9 bg-amber-700 text-amber-100 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">📿</div>
-                <div class="bg-amber-50 border border-amber-200 rounded-3xl px-6 py-4 flex items-center">
-                    <div class="typing flex items-center">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <span class="ml-6 text-amber-700 text-sm font-medium">Shastra is reflecting...</span>
-                </div>
-            </div>
+        <!-- Messages Area -->
+        <div id="messages" class="flex-1 overflow-y-auto bg-white/80 backdrop-blur rounded-3xl p-6 space-y-6 border border-amber-100 shadow-inner mb-6">
         </div>
 
-        <!-- Bottom Input Bar (PC Optimized - Wider on large screens) -->
-        <div class="mt-auto border-t border-amber-200 bg-white py-6 px-4 sm:px-6 lg:px-8">
-            <div class="max-w-[860px] mx-auto input-bar flex items-center px-5 sm:px-7 py-3">
-                <textarea id="userInput" rows="1" 
-                    placeholder="Ask about bhakti, dharma, the Gita... (Enter to send)"
-                    class="flex-1 bg-transparent focus:outline-none text-base lg:text-[15.5px] placeholder:text-amber-500 resize-none max-h-[130px] py-3.5 px-5 leading-relaxed"
-                    autocomplete="off"></textarea>
-                <button id="sendBtn"
-                    class="ask-btn flex items-center gap-2 text-sm lg:text-base px-8 py-4 lg:py-3 font-medium">
-                    <span>Ask Shastra</span>
-                    <span class="text-xl">🙏</span>
+        <!-- Input -->
+        <div class="bg-white rounded-3xl shadow-xl border border-amber-100 p-2">
+            <div class="flex gap-3 items-center px-4">
+                <textarea id="userInput" rows="1"
+                    class="flex-1 resize-none bg-transparent focus:outline-none py-4 text-base placeholder:text-amber-400"
+                    placeholder="Ask about Vaishnav philosophy, Krishna leela, rituals..."></textarea>
+                
+                <button id="sendBtn" 
+                    class="bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 w-12 h-12 flex items-center justify-center rounded-2xl text-white shadow transition-all active:scale-95">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
-            </div>
-            <div class="text-center text-[10px] text-amber-700/60 mt-5 tracking-[0.5px]">
-                © 2025 JMS Tech • Made with ❤️ for Vaishnav GPT
             </div>
         </div>
     </div>
-</body>
 
     <script>
         const messagesContainer = document.getElementById('messages');
-        const hero = document.getElementById('hero');
+        const suggestionsContainer = document.getElementById('suggestions');
         const input = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
-        const typing = document.getElementById('typing');
 
-        let hasStartedChat = false;
+        let hasInteracted = false;
 
-        // Auto-resize textarea
-        input.addEventListener('input', () => {
-            input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 110) + 'px';
-            sendBtn.disabled = !input.value.trim();
-        });
-
-        // Hide hero and show messages when chat begins
-        function startChat() {
-            if (!hasStartedChat) {
-                hasStartedChat = true;
-                hero.classList.add('hidden');
-                messagesContainer.classList.remove('hidden');
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
+        function log(message) {
+            console.log(`[VaishnavGPT] ${message}`);
         }
 
-        // Add message to chat (updated for new layout)
-        function addMessage(content, isUser = false, messageId = null) {
-            startChat(); // Ensure chat view is active
-
+        function addMessage(content, isUser = false) {
             const div = document.createElement('div');
-            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'} group`;
-
-            const time = new Date().toLocaleTimeString('en-IN', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-
-            const displayText = typeof content === 'string' ? content : "Message received";
-
-            let html = '';
+            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
 
             if (isUser) {
-                html = `
-                    <div class="max-w-[85%] lg:max-w-[78%] user-bubble px-7 py-6 rounded-3xl rounded-tr-none">
-                        <div class="message-text whitespace-pre-wrap text-amber-100">${displayText}</div>
-                        <div class="text-[10px] text-amber-200/80 mt-4 flex justify-end">● ${time}</div>
-                    </div>`;
+                div.innerHTML = `
+                    <div class="max-w-[80%] bg-amber-600 text-white rounded-3xl rounded-tr-none px-6 py-4">
+                        <p>${content}</p>
+                    </div>
+                `;
             } else {
-                html = `
-                    <div class="flex gap-4 max-w-[88%] lg:max-w-[82%]">
-                        <div class="w-9 h-9 bg-gradient-to-br from-amber-700 to-orange-700 text-2xl flex-shrink-0 rounded-2xl flex items-center justify-center shadow-inner">📿</div>
-                        <div class="bot-bubble px-7 py-6 rounded-3xl rounded-tl-none flex-1">
-                            <div class="message-text whitespace-pre-wrap text-amber-900">${displayText}</div>
-                            <div class="text-[10px] text-orange-700/70 mt-4 flex items-center gap-2">
-                                <span>● ${time}</span>
-                            </div>
-                            ${messageId ? `
-                            <div class="flex gap-6 mt-6 pt-4 border-t border-amber-200 text-xs">
-                                <button onclick="sendFeedback('${messageId}', 'like', this)" class="feedback-btn text-amber-700 hover:text-amber-800">
-                                    <i class="fas fa-heart"></i> This illuminates
-                                </button>
-                                <button onclick="sendFeedback('${messageId}', 'dislike', this)" class="feedback-btn text-orange-700 hover:text-rose-700">
-                                    <i class="fas fa-thumbs-down"></i>
-                                </button>
-                            </div>` : ''}
-                        </div>
-                    </div>`;
+                div.innerHTML = `
+                    <div class="max-w-[80%] bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4 shadow">
+                        <div class="message-content text-amber-800 prose prose-amber">${content}</div>
+                    </div>
+                `;
             }
-
-            div.innerHTML = html;
             messagesContainer.appendChild(div);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        function showTyping() {
+            const typing = document.createElement('div');
+            typing.id = 'typing';
+            typing.className = "flex justify-start";
+            typing.innerHTML = `
+                <div class="bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4">
+                    Vaishnav GPT is thinking <span class="animate-pulse">...</span>
+                </div>
+            `;
+            messagesContainer.appendChild(typing);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return typing;
+        }
+
+        function hideSuggestions() {
+            if (suggestionsContainer) {
+                suggestionsContainer.style.display = 'none';
+            }
+        }
+
+        async function callAPI(message) {
+            const typing = showTyping();
+
+            // Hide suggestions after first interaction
+            if (!hasInteracted) {
+                hasInteracted = true;
+                hideSuggestions();
+            }
+
+            try {
+                const response = await fetch('/api/vaishnav-bot/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                typing.remove();
+
+                if (data.reply) {
+                    addMessage(data.reply, false);
+                } else {
+                    addMessage("Jai Shree Krishna! 🙏", false);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                typing.remove();
+                addMessage("Sorry, I couldn't connect. Please try again.");
+            }
+        }
+
+        window.sendQuickPrompt = function(btn) {
+            const text = btn.textContent.trim();
+            addMessage(text, true);
+            callAPI(text);
+        };
 
         async function sendMessage() {
             const msg = input.value.trim();
             if (!msg) return;
 
             addMessage(msg, true);
-            const currentInput = input.value;
             input.value = '';
-            input.style.height = 'auto';
-            sendBtn.disabled = true;
-            typing.classList.remove('hidden');
-
-            try {
-                const res = await fetch('', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken') || ''
-                    },
-                    body: JSON.stringify({ message: currentInput })
-                });
-
-                const data = await res.json();
-                typing.classList.add('hidden');
-                const realMessageId = data.message_id || 'msg-' + Date.now();
-                addMessage(data.reply || "Hare Krishna. How may the eternal wisdom of the Shastras illuminate your path today?", false, realMessageId);
-            } catch (err) {
-                typing.classList.add('hidden');
-                addMessage("The connection to the divine knowledge was interrupted. Please try again.");
-            }
+            callAPI(msg);
         }
 
         function getCookie(name) {
@@ -468,14 +227,8 @@
             return cookieValue;
         }
 
-        // Chip click handler - auto sends the suggestion
-        function useSuggestion(btn) {
-            const suggestionText = btn.textContent.trim();
-            input.value = suggestionText;
-            sendMessage();
-        }
-
-        // Enter key support
+        // Events
+        sendBtn.addEventListener('click', sendMessage);
         input.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -483,46 +236,11 @@
             }
         });
 
-        sendBtn.onclick = sendMessage;
-
-        // Initialize - focus input, hero is already visible
+        // Initialize
         window.onload = () => {
-            input.focus();
-            // No auto message - hero provides the welcoming experience
+            log("Vaishnav GPT loaded");
+            addMessage("Jai Shree Krishna! 🙏 How may I serve you today?", false);
         };
-
-        // Feedback handler
-        async function sendFeedback(messageId, feedback, button) {
-            if (button.dataset.feedback) return;
-
-            try {
-                const res = await fetch('/api/chat-feedback/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({ message_id: messageId, feedback: feedback })
-                });
-                const data = await res.json();
-
-                if (data.status === "success" || data.status === "already_voted") {
-                    button.dataset.feedback = feedback;
-                    if (feedback === 'like') {
-                        button.innerHTML = `✅ <span class="ml-2">Jai Shri Krishna</span>`;
-                    } else {
-                        button.innerHTML = `📝 <span class="ml-2">Noted with care</span>`;
-                    }
-                    setTimeout(() => {
-                        const parent = button.parentElement;
-                        if (parent) parent.style.opacity = '0.4';
-                    }, 2200);
-                }
-            } catch (err) {
-                console.error("Feedback error:", err);
-            }
-        }
     </script>
-
-
+</body>
 </html>
