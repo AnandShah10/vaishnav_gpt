@@ -8,138 +8,538 @@
     <title>Vaishnav GPT</title>
     <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        /* ───── RESET & BASE ───── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(175deg, #f5e6c8 0%, #fdf6ec 35%, #fef9f0 100%);
+            color: #3d2b1f;
+        }
         .heading-font { font-family: 'Playfair Display', serif; }
 
-        .tradition-card { transition: all 0.3s ease; }
-        .tradition-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        /* ───── LAYOUT SHELL ───── */
+        .app-shell {
+            max-width: 720px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
+        /* ───── TOP NAVBAR ───── */
+        .top-nav {
+            background: linear-gradient(135deg, #5c3d2e 0%, #7a5033 100%);
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(92, 61, 46, 0.25);
+            position: relative;
+            z-index: 10;
+        }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+        }
+        .nav-title { font-weight: 600; font-size: 15px; }
+        .nav-breadcrumb {
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-breadcrumb .sep { opacity: 0.4; }
+        .nav-breadcrumb .active { color: #fcd9a8; font-weight: 500; }
+
+        /* ───── SELECTION SCREEN ───── */
+        #selection-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        #selection-screen::-webkit-scrollbar { display: none; }
+
+        .selection-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px 40px;
+        }
+        .hero-icon {
+            font-size: 64px;
+            line-height: 1;
+            margin-bottom: 12px;
+            color: #3d2b1f;
+        }
+        .hero-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3d2b1f;
+            margin-bottom: 6px;
+        }
+        .hero-subtitle {
+            font-size: 15px;
+            color: #8b7355;
+            text-align: center;
+            max-width: 380px;
+            line-height: 1.55;
+            margin-bottom: 28px;
+        }
+
+        /* Session badge */
+        .session-badge {
+            background: linear-gradient(135deg, #f0f7f0 0%, #e8f4e8 100%);
+            border: 1px solid #c5dfc5;
+            border-radius: 16px;
+            padding: 14px 22px;
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .session-badge .badge-icon {
+            font-size: 18px;
+        }
+        .session-badge .badge-text {
+            font-size: 13px;
+            color: #3d6b3d;
+        }
+        .session-badge .badge-text strong { color: #2d5a2d; }
+
+        /* Tradition selector heading */
+        .tradition-heading {
+            font-size: 15px;
+            font-weight: 600;
+            color: #5c3d2e;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        /* Tradition cards */
+        .tradition-list {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tradition-card {
+            width: 100%;
+            text-align: left;
+            padding: 18px 22px;
+            border-radius: 16px;
+            border: 1.5px solid #e8ddd0;
+            background: #fffcf7;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .tradition-card:hover {
+            border-color: #c9a96e;
+            background: #fff9f0;
+            box-shadow: 0 4px 20px rgba(180, 140, 80, 0.12);
+            transform: translateY(-2px);
+        }
+        .tradition-card:active { transform: scale(0.985); }
+        .tradition-card .card-emoji {
+            font-size: 32px;
+            flex-shrink: 0;
+            width: 44px;
+            text-align: center;
+        }
+        .tradition-card .card-body { flex: 1; min-width: 0; }
+        .tradition-card .card-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #3d2b1f;
+        }
+        .tradition-card .card-desc {
+            font-size: 13px;
+            color: #9c8468;
+            margin-top: 2px;
+        }
+
+        /* ───── FOOTER ───── */
+        .app-footer {
+            text-align: center;
+            padding: 14px 16px;
+            font-size: 12px;
+            color: #a08b6f;
+            flex-shrink: 0;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .app-footer .heart { color: #e74c3c; }
+
+        /* ───── CHAT SCREEN ───── */
+        #chat-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-screen.active { display: flex; }
+
+        /* Welcome hero in chat */
+        .chat-welcome {
+            text-align: center;
+            padding: 36px 20px 10px;
+            flex-shrink: 0;
+        }
+        .chat-welcome .cw-icon {
+            font-size: 56px;
+            margin-bottom: 8px;
+            color: #3d2b1f;
+        }
+        .chat-welcome .cw-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #3d2b1f;
+            margin-bottom: 4px;
+        }
+        .chat-welcome .cw-sub {
+            font-size: 14px;
+            color: #8b7355;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        .chat-welcome .cw-tradition {
+            font-weight: 600;
+        }
+
+        /* Suggestion chips */
+        #suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px 20px 10px;
+            flex-shrink: 0;
+        }
         .suggestion-chip {
-            transition: all 0.3s ease;
+            background: #fff;
+            border: 1px solid #ddd0bc;
+            color: #5c3d2e;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
         }
         .suggestion-chip:hover {
+            border-color: #c9a96e;
+            background: #fef5e7;
             transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgb(245 158 11 / 0.15);
+            box-shadow: 0 4px 12px rgba(180, 140, 80, 0.15);
         }
 
-        .logo-glow {
-            animation: glow 3s ease-in-out infinite alternate;
+        /* Messages */
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 0;
+            scrollbar-width: thin;
+            scrollbar-color: #c2956b #f5e8d3;
+        }
+        #messages::-webkit-scrollbar { width: 5px; }
+        #messages::-webkit-scrollbar-track { background: #f5e8d3; border-radius: 20px; }
+        #messages::-webkit-scrollbar-thumb { background: #c2956b; border-radius: 20px; }
+        #messages::-webkit-scrollbar-thumb:hover { background: #a07850; }
+
+        .msg-row { display: flex; }
+        .msg-row.user { justify-content: flex-end; }
+        .msg-row.bot { justify-content: flex-start; }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .msg-row.user .msg-bubble {
+            background: linear-gradient(135deg, #7a5033, #5c3d2e);
+            color: #fff;
+            border-top-right-radius: 4px;
+        }
+        .msg-row.bot .msg-bubble {
+            background: #fff;
+            border: 1px solid #e8ddd0;
+            color: #3d2b1f;
+            border-top-left-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
 
-        @keyframes glow {
-            from { text-shadow: 0 0 10px #fcd34d; }
-            to { text-shadow: 0 0 25px #f59e0b; }
+        /* ── Rich message content typography ── */
+        .msg-bubble h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #5c3d2e;
+            margin: 16px 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #ede3d3;
+        }
+        .msg-bubble h2:first-child { margin-top: 0; }
+        .msg-bubble h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #6b4a30;
+            margin: 14px 0 6px;
+        }
+        .msg-bubble h3:first-child { margin-top: 0; }
+        .msg-bubble h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #7a5a3c;
+            margin: 10px 0 4px;
+        }
+        .msg-bubble p {
+            margin: 0 0 8px;
+            line-height: 1.7;
+        }
+        .msg-bubble p:last-child { margin-bottom: 0; }
+        .msg-bubble ul, .msg-bubble ol {
+            margin: 8px 0 12px;
+            padding-left: 22px;
+        }
+        .msg-bubble ul { list-style: disc; }
+        .msg-bubble ol { list-style: decimal; }
+        .msg-bubble li {
+            margin-bottom: 6px;
+            line-height: 1.6;
+        }
+        .msg-bubble li:last-child { margin-bottom: 0; }
+        .msg-bubble strong { font-weight: 600; color: #3d2b1f; }
+        .msg-bubble em { font-style: italic; }
+        .msg-bubble .msg-link {
+            color: #8b5e3c;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            transition: color 0.2s;
+        }
+        .msg-bubble .msg-link:hover { color: #5c3d2e; }
+        .msg-bubble br { display: block; content: ""; margin-top: 6px; }
+
+        /* ───── BOTTOM INPUT BAR ───── */
+        .input-bar {
+            padding: 14px 20px;
+            background: #fffcf7;
+            border-top: 1px solid #ede3d3;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .input-bar textarea {
+            flex: 1;
+            resize: none;
+            border: 1.5px solid #ddd0bc;
+            background: #fff;
+            border-radius: 999px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #3d2b1f;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-bar textarea::placeholder { color: #b5a48e; }
+        .input-bar textarea:focus { border-color: #c9a96e; }
+
+        .send-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #7a5033, #5c3d2e);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .send-btn:hover {
+            background: linear-gradient(135deg, #8b5e3c, #6b4632);
+            box-shadow: 0 4px 12px rgba(92, 61, 46, 0.3);
+        }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn .btn-icon { font-size: 13px; }
+
+        /* ───── RESPONSIVE ───── */
+        @media (max-width: 480px) {
+            .hero-title { font-size: 26px; }
+            .hero-subtitle { font-size: 14px; }
+            .tradition-card { padding: 14px 16px; }
+            .tradition-card .card-title { font-size: 15px; }
+            .suggestion-chip { font-size: 12px; padding: 8px 14px; }
+            .chat-welcome .cw-title { font-size: 22px; }
+            .chat-welcome { padding-top: 24px; }
+            .send-btn { padding: 12px 16px; }
+            .send-btn span { display: none; }
+            .input-bar textarea { padding: 12px 18px; }
         }
     </style>
 </head>
 
-<body class="bg-[#f8f1e3] min-h-screen">
+<body>
 
-    <div class="max-w-2xl mx-auto min-h-screen flex flex-col">
+    <div class="app-shell">
 
-        <!-- Selection Screen -->
-        <div id="selection-screen" class="flex-1">
-            <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white py-10 text-center">
-                <div class="mx-auto w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-6xl mb-6 shadow-2xl logo-glow">
-                    ॐ
+        <!-- ═══ TOP NAVBAR ═══ -->
+        <nav class="top-nav">
+            <div class="nav-logo">ॐ</div>
+            <span class="nav-title">Vaishnav GPT</span>
+            <div class="nav-breadcrumb" id="nav-breadcrumb">
+                <!-- filled by JS after tradition selection -->
+            </div>
+        </nav>
+
+        <!-- ═══ SELECTION SCREEN ═══ -->
+        <div id="selection-screen">
+            <div class="selection-body">
+                <div class="hero-icon">ॐ</div>
+                <h1 class="hero-title heading-font">Vaishnav GPT</h1>
+                <p class="hero-subtitle">
+                    Divine Wisdom &amp; Pure Bhakti. A scholarly oracle of Vaishnava theology, philosophy, history &amp; ritual practice.
+                </p>
+
+                <div class="session-badge">
+                    <span class="badge-icon">🔴</span>
+                    <div class="badge-text">
+                        <strong>Session initiated:</strong><br>
+                        <span id="session-time"></span>
+                    </div>
                 </div>
-                <h1 class="text-4xl font-bold heading-font tracking-tight">Vaishnav GPT</h1>
-                <p class="text-amber-100 mt-2 text-lg">Divine Wisdom &amp; Pure Bhakti</p>
-            </header>
 
-            <div class="p-6">
-                <div class="bg-white rounded-3xl shadow-2xl p-8">
-                    <div class="text-center mb-8">
-                        <p class="text-sm text-amber-600">Session initiated: <span id="session-time" class="font-medium"></span></p>
-                        <h2 class="heading-font text-3xl text-amber-900 mt-6">Select Your Tradition</h2>
-                        <p class="text-amber-600 mt-2">Choose the path that resonates with your soul</p>
-                    </div>
+                <p class="tradition-heading">Select your tradition to begin:</p>
 
-                    <div class="space-y-4">
-                        <button onclick="selectTradition('universal')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-semibold text-xl">Universal Bhakti</h3>
-                                    <p class="text-amber-600 text-sm mt-1">All Sampradayas • General Vaishnava Wisdom</p>
-                                </div>
-                                <span class="text-4xl">🌍</span>
-                            </div>
-                        </button>
+                <div class="tradition-list">
+                    <button onclick="selectTradition('universal')" class="tradition-card">
+                        <span class="card-emoji">🌍</span>
+                        <div class="card-body">
+                            <div class="card-title">Universal Bhakti</div>
+                            <div class="card-desc">All Sampradayas · General Vaishnava Wisdom</div>
+                        </div>
+                    </button>
 
-                        <button onclick="selectTradition('krishna')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-semibold text-xl">Krishna Bhakti</h3>
-                                    <p class="text-amber-600 text-sm mt-1">Radha-Krishna • Gaudiya Vaishnavism</p>
-                                </div>
-                                <span class="text-4xl">🐄</span>
-                            </div>
-                        </button>
+                    <button onclick="selectTradition('krishna')" class="tradition-card">
+                        <span class="card-emoji">🐄</span>
+                        <div class="card-body">
+                            <div class="card-title">Krishna Bhakti</div>
+                            <div class="card-desc">Radha-Krishna · Gaudiya Vaishnavism</div>
+                        </div>
+                    </button>
 
-                        <button onclick="selectTradition('ram')" class="tradition-card w-full text-left p-6 rounded-2xl border-2 border-amber-200 hover:border-amber-500 bg-white">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-semibold text-xl">Rama Bhakti</h3>
-                                    <p class="text-amber-600 text-sm mt-1">Lord Rama • Hanuman • Ramayana</p>
-                                </div>
-                                <span class="text-4xl">🏹</span>
-                            </div>
-                        </button>
-                    </div>
+                    <button onclick="selectTradition('ram')" class="tradition-card">
+                        <span class="card-emoji">🏹</span>
+                        <div class="card-body">
+                            <div class="card-title">Rama Bhakti</div>
+                            <div class="card-desc">Lord Rama · Hanuman · Ramayana</div>
+                        </div>
+                    </button>
+
+                    <button onclick="selectTradition('vallabha')" class="tradition-card">
+                        <span class="card-emoji">🌺</span>
+                        <div class="card-body">
+                            <div class="card-title">Pushtimarg Bhakti</div>
+                            <div class="card-desc">Vallabhacharya · Shuddhadvaita · Shrinathji</div>
+                        </div>
+                    </button>
+
+                    <button onclick="selectTradition('nimbarka')" class="tradition-card">
+                        <span class="card-emoji">🌼</span>
+                        <div class="card-body">
+                            <div class="card-title">Nimbarka Bhakti</div>
+                            <div class="card-desc">Dvaitadvaita · Sri Radha-Krishna</div>
+                        </div>
+                    </button>
                 </div>
             </div>
+
+            <footer class="app-footer">
+                &copy; 2026 JMS AI Assistant | Made with <span class="heart">❤</span> by JMS Advisory
+            </footer>
         </div>
 
-        <!-- Chat Screen -->
-        <div id="chat-screen" class="hidden flex-1 flex flex-col">
-            <header class="bg-gradient-to-r from-amber-900 to-amber-800 text-white py-4 px-6 flex items-center gap-3 shadow-lg">
-                <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-3xl logo-glow">ॐ</div>
-                <div class="flex-1">
-                    <h1 class="font-bold">Vaishnav GPT</h1>
-                    <p id="active-tradition" class="text-xs text-amber-100"></p>
-                </div>
-            </header>
+        <!-- ═══ CHAT SCREEN ═══ -->
+        <div id="chat-screen">
+
+            <!-- Welcome hero -->
+            <div id="chat-welcome" class="chat-welcome">
+                <div class="cw-icon">ॐ</div>
+                <h2 class="cw-title heading-font">Jai Shree Krishna</h2>
+                <p class="cw-sub">
+                    You have selected the <span id="tradition-label" class="cw-tradition">Universal</span> tradition.
+                    Ask anything about Vaishnava theology, philosophy, history, or ritual practice. The discourse awaits.
+                </p>
+            </div>
 
             <!-- Suggestions -->
-            <div id="suggestions" class="px-6 pt-6 grid grid-cols-2 gap-3">
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+            <div id="suggestions">
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
                     Explain Bhagavad Gita Chapter 2
                 </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
                     Who is Lord Krishna?
                 </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
                     Significance of Janmashtami
                 </button>
-                <button onclick="sendQuickPrompt(this)" class="suggestion-chip bg-white border border-amber-200 hover:border-amber-400 text-amber-800 px-5 py-4 rounded-3xl text-sm font-medium text-left">
+                <button onclick="sendQuickPrompt(this)" class="suggestion-chip">
                     Tell me about Radha Krishna
                 </button>
             </div>
 
             <!-- Messages -->
-            <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-white/70 backdrop-blur min-h-0"></div>
+            <div id="messages"></div>
 
-            <!-- Input -->
-            <div class="p-4 bg-white border-t border-amber-100">
-                <div class="flex gap-3 items-center">
-                    <textarea id="userInput" rows="1"
-                        class="flex-1 resize-none bg-gray-50 border border-amber-200 rounded-3xl px-6 py-4 focus:outline-none focus:border-amber-500 text-base"
-                        placeholder="Ask about Krishna, Gita, Bhakti..."></textarea>
-                    <button id="sendBtn"
-                        class="bg-amber-600 hover:bg-amber-700 text-white w-12 h-12 rounded-3xl flex items-center justify-center transition-all active:scale-95">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
+            <!-- Input bar -->
+            <div class="input-bar">
+                <textarea id="userInput" rows="1"
+                    placeholder="Ask about Krishna, Gita, Bhakti... (Enter to send)"></textarea>
+                <button id="sendBtn" class="send-btn">
+                    <i class="fas fa-paper-plane btn-icon"></i>
+                    <span>Ask</span>
+                </button>
             </div>
+
+            <footer class="app-footer">
+                &copy; 2026 JMS AI Assistant | Made with <span class="heart">❤</span> by JMS Advisory
+            </footer>
         </div>
+
     </div>
 
     <script>
@@ -149,34 +549,52 @@
         function getCurrentTime() {
             return new Date().toLocaleString('en-IN', { 
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit' 
-            });
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }) + ' IST';
         }
+
+        // Auto-resize textarea (capped at 4 lines)
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, 120); // ~4 lines
+            textarea.style.height = newHeight + 'px';
+        }
+
+        const traditionNames = {
+            'universal': 'Universal Bhakti',
+            'krishna': 'Krishna Bhakti',
+            'ram': 'Rama Bhakti',
+            'vallabha': 'Pushtimarg Bhakti',
+            'nimbarka': 'Nimbarka Bhakti'
+        };
 
         function selectTradition(tradition) {
             selectedTradition = tradition;
-            document.getElementById('selection-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.remove('hidden');
-            document.getElementById('active-tradition').textContent = 
-                tradition === 'universal' ? 'Universal Bhakti' : 
-                tradition === 'krishna' ? 'Krishna Bhakti' : 'Rama Bhakti';
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('chat-screen').classList.add('active');
+
+            // Update nav breadcrumb
+            const bc = document.getElementById('nav-breadcrumb');
+            bc.innerHTML = `<span class="sep">›</span> <span class="active">${traditionNames[tradition] || 'Vaishnava Bhakti'}</span>`;
+
+            // Update welcome tradition label
+            const labelMap = { universal: 'Universal', krishna: 'Krishna', ram: 'Rama', vallabha: 'Pushtimarg', nimbarka: 'Nimbarka' };
+            document.getElementById('tradition-label').textContent = labelMap[tradition] || 'Universal';
+
             initChat();
         }
 
         function hideSuggestions() {
             document.getElementById('suggestions').style.display = 'none';
+            document.getElementById('chat-welcome').style.display = 'none';
         }
 
         function addMessage(content, isUser = false) {
             const container = document.getElementById('messages');
             const div = document.createElement('div');
-            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            div.className = `msg-row ${isUser ? 'user' : 'bot'}`;
 
-            if (isUser) {
-                div.innerHTML = `<div class="max-w-[80%] bg-amber-600 text-white rounded-3xl rounded-tr-none px-6 py-4"><p>${content}</p></div>`;
-            } else {
-                div.innerHTML = `<div class="max-w-[80%] bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4 shadow"><div class="message-content text-amber-800">${content}</div></div>`;
-            }
+            div.innerHTML = `<div class="msg-bubble">${content}</div>`;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
@@ -185,8 +603,8 @@
             const container = document.getElementById('messages');
             const typing = document.createElement('div');
             typing.id = 'typing';
-            typing.className = "flex justify-start";
-            typing.innerHTML = `<div class="bg-white border border-amber-100 rounded-3xl rounded-tl-none px-6 py-4">Vaishnav GPT is thinking <span class="animate-pulse">...</span></div>`;
+            typing.className = "msg-row bot";
+            typing.innerHTML = `<div class="msg-bubble">Vaishnav GPT is thinking <span style="animation: pulse 1.5s infinite">...</span></div>`;
             container.appendChild(typing);
             container.scrollTop = container.scrollHeight;
             return typing;
@@ -258,11 +676,23 @@
         }
 
         // Event Listeners
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        document.getElementById('userInput').addEventListener('keydown', e => {
+        const textarea = document.getElementById('userInput');
+        textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            sendMessage();
+            // Reset height after send
+            setTimeout(() => {
+                textarea.style.height = 'auto';
+            }, 10);
+        });
+        textarea.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
+                // Reset height after send
+                setTimeout(() => {
+                    textarea.style.height = 'auto';
+                }, 10);
             }
         });
 
