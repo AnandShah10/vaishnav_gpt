@@ -75,6 +75,9 @@
 
         .nav-actions {
             margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .home-btn {
@@ -155,21 +158,30 @@
             margin-bottom: 8px;
         }
 
-        .lang-select {
+        .lang-buttons {
+            display: flex;
+            gap: 10px;
             width: 100%;
-            padding: 12px 16px;
+        }
+
+        .lang-btn {
+            flex: 1;
+            padding: 10px;
             border-radius: 10px;
             background: #fff;
             border: 1.5px solid #d1d5db;
             color: #1e293b;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .lang-select:focus {
+        .lang-btn.active {
             border-color: #14b8a6;
+            background: #f0fdfa;
+            color: #0d9488;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.15);
         }
 
         .tradition-list {
@@ -719,6 +731,7 @@
                     style="height: 32px; width: auto; vertical-align: middle;"></div>
             <span class="nav-title">Vaishnav GPT</span>
             <div class="nav-actions">
+                <button id="logoutBtn" class="home-btn" onclick="logoutUser()" style="display: none;">Logout</button>
                 <button id="homeBtn" class="home-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
             </div>
         </nav>
@@ -734,11 +747,13 @@
 
                 <div class="form-group">
                     <label class="form-label">🌐 Select Language / भाषा चुनें / ભાષા પસંદ કરો</label>
-                    <select id="languageSelect" class="lang-select">
-                        <option value="English">English</option>
-                        <option value="Hindi">हिन्दी (Hindi)</option>
-                        <option value="Gujarati">ગુજરાતી (Gujarati)</option>
-                    </select>
+                    <div class="lang-buttons" id="langButtons">
+                        <button class="lang-btn active" data-lang="English"
+                            onclick="setLanguage('English', this)">English</button>
+                        <button class="lang-btn" data-lang="Hindi" onclick="setLanguage('Hindi', this)">हिन्दी</button>
+                        <button class="lang-btn" data-lang="Gujarati"
+                            onclick="setLanguage('Gujarati', this)">ગુજરાતી</button>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom:10px;">
@@ -786,6 +801,34 @@
                         <div class="card-body">
                             <div class="card-title">Nimbarka Bhakti</div>
                             <div class="card-desc">Dvaitadvaita · Sri Radha-Krishna</div>
+                        </div>
+                    </button>
+                    <button onclick="startChat('bhagavatam')" class="tradition-card">
+                        <div class="card-icon">🪷</div>
+                        <div class="card-body">
+                            <div class="card-title">Srimad Bhagavatam</div>
+                            <div class="card-desc">Puranic Wisdom · Pastimes of Lord Krishna</div>
+                        </div>
+                    </button>
+                    <button onclick="startChat('upanishads')" class="tradition-card">
+                        <div class="card-icon">🕉️</div>
+                        <div class="card-body">
+                            <div class="card-title">Upanishads & Vedanta</div>
+                            <div class="card-desc">Profound Philosophical Insights</div>
+                        </div>
+                    </button>
+                    <button onclick="startChat('vishnu_puran')" class="tradition-card">
+                        <div class="card-icon">🌌</div>
+                        <div class="card-body">
+                            <div class="card-title">Vishnu Puran</div>
+                            <div class="card-desc">Cosmology · Stories · Philosophy</div>
+                        </div>
+                    </button>
+                    <button onclick="startChat('panchang')" class="tradition-card">
+                        <div class="card-icon">📅</div>
+                        <div class="card-body">
+                            <div class="card-title">Vaishnav Panchang</div>
+                            <div class="card-desc">Today's Tithi · Ekadashi · Festivals</div>
                         </div>
                     </button>
                 </div>
@@ -847,9 +890,65 @@
         </div>
     </div>
 
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title heading-font" id="authTitle">Sign In</h3>
+            <p class="modal-desc" id="authDesc">Sign in with your email to save your learning progress.</p>
+
+            <div id="authStep1">
+                <input type="email" id="authEmail" class="modal-input" placeholder="Email Address" />
+                <p id="authError1" style="color: #ef4444; font-size: 13px; margin-bottom: 10px; display: none;"></p>
+                <button id="sendOtpBtn" class="modal-btn" onclick="sendOTP()">Send OTP</button>
+            </div>
+
+            <div id="authStep2" style="display: none;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">OTP sent to <strong
+                        id="sentEmailDisplay"></strong></p>
+                <input type="text" id="authOTP" class="modal-input" placeholder="Enter 6-digit OTP" />
+                <p id="authError2" style="color: #ef4444; font-size: 13px; margin-bottom: 10px; display: none;"></p>
+                <button class="modal-btn" onclick="verifyOTP()">Verify & Login</button>
+                <button class="skip-btn" onclick="resetAuth()">Change Email</button>
+            </div>
+
+            <button class="skip-btn" onclick="closeAuthModal()" style="margin-top: 16px;">Close</button>
+        </div>
+    </div>
+
     <script>
+        const jwtToken = localStorage.getItem('vaishnav_jwt');
+        const loggedInUser = localStorage.getItem('vaishnav_user');
+        const isAuthenticated = "{{ request.user.is_authenticated }}" === "True";
+
+        if (isAuthenticated) {
+            document.getElementById('logoutBtn').style.display = 'inline-flex';
+
+            // Hide email in feedback if logged in
+            const fbEmail = document.getElementById('fbEmail');
+            if (fbEmail) {
+                fbEmail.style.display = 'none';
+                fbEmail.value = '{{ request.user.username }}';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            if (isAuthenticated) {
+                const pending = localStorage.getItem('pending_tradition');
+                if (pending) {
+                    localStorage.removeItem('pending_tradition');
+                    startChat(pending);
+                }
+            }
+        });
+
         let selectedTradition = 'universal';
         let selectedLanguage = 'English';
+
+        function setLanguage(lang, btnElement) {
+            selectedLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
         let userMessageCount = 0;
         let feedbackShown = false;
         let suggestionsUsed = false;
@@ -889,7 +988,9 @@
         const traditionNames = {
             'universal': 'Universal Bhakti', 'gita': 'Bhagavad Gita',
             'krishna': 'Krishna Bhakti', 'ram': 'Rama Bhakti',
-            'vallabha': 'Pushtimarg Bhakti', 'nimbarka': 'Nimbarka Bhakti'
+            'vallabha': 'Pushtimarg Bhakti', 'nimbarka': 'Nimbarka Bhakti',
+            'bhagavatam': 'Srimad Bhagavatam', 'upanishads': 'Upanishads & Vedanta',
+            'vishnu_puran': 'Vishnu Puran', 'panchang': 'Vaishnav Panchang'
         };
 
         const traditionSuggestions = {
@@ -898,7 +999,11 @@
             'krishna': ['Who is Radha to Krishna?', 'Tell me about Vrindavan Leela', 'Explain Rasa Lila significance', 'Teachings of Chaitanya Mahaprabhu'],
             'ram': ['Why is Lord Rama called Maryada Purushottam?', 'Significance of Hanuman Chalisa', 'Tell me about Sita Mata', 'Lessons from Lanka Kand'],
             'vallabha': ['What is Pushti Marg?', 'Tell me about Shrinathji', 'Explain Shuddhadvaita philosophy', 'Who are the Ashta-Chhap poets?'],
-            'nimbarka': ['What is Dvaitadvaita?', 'Nimbarkacharya teachings on Radha-Krishna', 'Explain Kumara Sampradaya', 'Role of Guru in Nimbarka tradition']
+            'nimbarka': ['What is Dvaitadvaita?', 'Nimbarkacharya teachings on Radha-Krishna', 'Explain Kumara Sampradaya', 'Role of Guru in Nimbarka tradition'],
+            'bhagavatam': ['Tell me about the 10th Canto', 'What is the essence of Bhagavatam?', 'Pastimes of Lord Krishna', 'Who is Shukadeva Goswami?'],
+            'upanishads': ['What is Brahman?', 'Explain the Katha Upanishad', 'Difference between Atman and Brahman', 'What does Vedanta mean?'],
+            'vishnu_puran': ['How was the universe created?', 'Stories of Dhruva Maharaja', 'Explain the cosmic cycles', 'Who is Maitreya?'],
+            'panchang': ["Please provide today's Vaishnav Panchang details", "When is the next Ekadashi?", "What is the tithi today?"]
         };
 
         function renderSuggestions(tradition) {
@@ -920,20 +1025,86 @@
             suggestionsUsed = true;
         }
 
-        function startChat(tradition) {
+        async function startChat(tradition) {
+            if (!isAuthenticated && ['gita', 'bhagavatam', 'upanishads', 'vishnu_puran'].includes(tradition)) {
+                localStorage.setItem('pending_tradition', tradition);
+                showLoginModal();
+                return;
+            }
+
             selectedTradition = tradition;
-            selectedLanguage = document.getElementById('languageSelect').value;
             suggestionsUsed = false;
             document.getElementById('selection-screen').classList.remove('active');
             document.getElementById('chat-screen').classList.add('active');
             document.getElementById('homeBtn').style.display = 'block';
             document.getElementById('tradition-label').textContent = traditionNames[tradition] || 'Universal';
             document.getElementById('messages').innerHTML = '';
-            let g = "Jai Shree Krishna! 🙏 How may I assist you today?";
-            if (selectedLanguage === 'Hindi') g = "जय श्री कृष्ण! 🙏 मैं आज आपकी कैसे सहायता कर सकता हूँ?";
-            if (selectedLanguage === 'Gujarati') g = "જય શ્રી કૃષ્ણ! 🙏 હું આજે તમારી કેવી રીતે મદદ કરી શકું?";
+
+            const greetings = {
+                'English': {
+                    'universal': "Jai Shree Krishna! 🙏 How may I assist you today?",
+                    'gita': "Hari Om! 🙏 Welcome to the Bhagavad Gita learning path. Let us explore the divine song of God.",
+                    'krishna': "Radhe Radhe! 🙏 Let us dive deep into the nectar of Krishna Bhakti.",
+                    'ram': "Jai Shree Ram! 🙏 How can I help you explore the glories of Lord Rama?",
+                    'vallabha': "Shri Krishna Sharanam Mama! 🙏 Welcome to Pushtimarg wisdom.",
+                    'nimbarka': "Radhe Krishna! 🙏 Let us learn the Dvaitadvaita philosophy.",
+                    'bhagavatam': "Namo Bhagavate Vasudevaya! 🙏 Let us hear the beautiful pastimes from Srimad Bhagavatam.",
+                    'upanishads': "Om Shanti! 🙏 Welcome to the profound teachings of the Upanishads and Vedanta.",
+                    'vishnu_puran': "Om Namo Narayanaya! 🙏 Let us explore the cosmic truths of the Vishnu Puran.",
+                    'panchang': "Jai Shree Krishna! 🙏 I am ready to provide Vaishnava calendar details."
+                },
+                'Hindi': {
+                    'universal': "जय श्री कृष्ण! 🙏 मैं आज आपकी कैसे सहायता कर सकता हूँ?",
+                    'gita': "हरि ओम! 🙏 भगवद गीता सीखने के मार्ग में आपका स्वागत है।",
+                    'krishna': "राधे राधे! 🙏 आइए कृष्ण भक्ति के अमृत में गहराई से गोता लगाएँ।",
+                    'ram': "जय श्री राम! 🙏 मैं भगवान राम की महिमा का पता लगाने में आपकी कैसे मदद कर सकता हूँ?",
+                    'vallabha': "श्री कृष्ण शरणं मम! 🙏 पुष्टिमार्ग ज्ञान में आपका स्वागत है।",
+                    'nimbarka': "राधे कृष्ण! 🙏 आइए द्वैताद्वैत दर्शन सीखें।",
+                    'bhagavatam': "नमो भगवते वासुदेवाय! 🙏 आइए श्रीमद्भागवत से सुंदर लीलाएँ सुनें।",
+                    'upanishads': "ओम शांति! 🙏 उपनिषदों और वेदांत की गहन शिक्षाओं में आपका स्वागत है।",
+                    'vishnu_puran': "ओम नमो नारायणाय! 🙏 आइए विष्णु पुराण के ब्रह्मांडीय सत्यों का अन्वेषण करें।",
+                    'panchang': "जय श्री कृष्ण! 🙏 मैं वैष्णव पंचांग विवरण प्रदान करने के लिए तैयार हूँ।"
+                },
+                'Gujarati': {
+                    'universal': "જય શ્રી કૃષ્ણ! 🙏 હું આજે તમારી કેવી રીતે મદદ કરી શકું?",
+                    'gita': "હરિ ઓમ! 🙏 ભગવદ ગીતા શીખવાના માર્ગમાં તમારું સ્વાગત છે.",
+                    'krishna': "રાધે રાધે! 🙏 ચાલો કૃષ્ણ ભક્તિના અમૃતમાં ઊંડા ઉતરીએ.",
+                    'ram': "જય શ્રી રામ! 🙏 હું ભગવાન રામના મહિમાનું અન્વેષણ કરવામાં તમારી કેવી રીતે મદદ કરી શકું?",
+                    'vallabha': "શ્રી કૃષ્ણ શરણં મમ! 🙏 પુષ્ટિમાર્ગ જ્ઞાનમાં તમારું સ્વાગત છે.",
+                    'nimbarka': "રાધે કૃષ્ણ! 🙏 ચાલો દ્વૈતાદ્વૈત દર્શન શીખીએ.",
+                    'bhagavatam': "નમો ભગવતે વાસુદેवाय! 🙏 ચાલો શ્રીમદ્ ભાગવતમાંથી સુંદર લીલાઓ સાંભળીએ.",
+                    'upanishads': "ઓમ શાંતિ! 🙏 ઉપનિષદો અને વેદાંતના ગહન શિક્ષણમાં તમારું સ્વાગત છે.",
+                    'vishnu_puran': "ઓમ નમો નારાયણાય! 🙏 ચાલો વિષ્ણુ પુરાણના વૈશ્વિક સત્યોનું અન્વેષણ કરીએ.",
+                    'panchang': "જય શ્રી કૃષ્ણ! 🙏 હું વૈષ્ણવ પંચાંગ વિગતો આપવા માટે તૈયાર છું."
+                }
+            };
+
+            let langDict = greetings[selectedLanguage] || greetings['English'];
+            let g = langDict[tradition] || langDict['universal'];
+
             addMessage(g, false);
             renderSuggestions(tradition);
+
+            if (isAuthenticated) {
+                try {
+                    const res = await fetch(`/api/get-history/?tradition=${tradition}`);
+                    const data = await res.json();
+                    if (data.status === 'success' && data.messages && data.messages.length > 0) {
+                        document.getElementById('messages').innerHTML = '';
+                        data.messages.forEach(m => {
+                            addMessage(m.content, m.role === 'user');
+                        });
+                        suggestionsUsed = true;
+                        hideSuggestions();
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            if (tradition === 'panchang') {
+                const prompt = "Please provide today's Vaishnav Panchang details.";
+                document.getElementById('userInput').value = prompt;
+                sendMessage();
+            }
         }
 
         function goHome() {
@@ -972,9 +1143,17 @@
             try {
                 const response = await fetch('/api/vaishnav-bot/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
                     body: JSON.stringify({ message, tradition: selectedTradition, language: selectedLanguage })
                 });
+
+                if (response.headers.get('X-Show-Feedback') === 'true' && !feedbackShown) {
+                    setTimeout(() => { document.getElementById('feedbackModal').classList.add('active'); feedbackShown = true; }, 1500);
+                }
+
                 typing.remove();
                 const cont = document.getElementById('messages');
                 const row = document.createElement('div'); row.className = "msg-row bot";
@@ -1018,6 +1197,91 @@
         }
 
         function closeFeedback() { document.getElementById('feedbackModal').classList.remove('active'); }
+
+        function showLoginModal() {
+            document.getElementById('authModal').classList.add('active');
+            resetAuth();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        function resetAuth() {
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authOTP').value = '';
+            document.getElementById('authError1').style.display = 'none';
+            document.getElementById('authError2').style.display = 'none';
+        }
+
+        async function sendOTP() {
+            const email = document.getElementById('authEmail').value.trim();
+            const err = document.getElementById('authError1');
+            const btn = document.getElementById('sendOtpBtn');
+            
+            if (!email) { err.textContent = "Enter email address."; err.style.display = 'block'; return; }
+            
+            btn.disabled = true;
+            btn.textContent = "Sending OTP...";
+            err.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/send-otp/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('authStep1').style.display = 'none';
+                    document.getElementById('authStep2').style.display = 'block';
+                    document.getElementById('sentEmailDisplay').textContent = email;
+                } else {
+                    err.textContent = data.message; err.style.display = 'block';
+                }
+            } catch (e) { 
+                err.textContent = "Network error."; err.style.display = 'block'; 
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Send OTP";
+            }
+        }
+
+        async function verifyOTP() {
+            const email = document.getElementById('sentEmailDisplay').textContent;
+            const otp = document.getElementById('authOTP').value.trim();
+            const err = document.getElementById('authError2');
+            if (!otp) { err.textContent = "Enter OTP."; err.style.display = 'block'; return; }
+            try {
+                const res = await fetch('/api/verify-otp/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('vaishnav_jwt', data.token);
+                    localStorage.setItem('vaishnav_user', data.username);
+                    window.location.reload();
+                } else {
+                    err.textContent = data.message; err.style.display = 'block';
+                }
+            } catch (e) { err.textContent = "Network error."; err.style.display = 'block'; }
+        }
+
+        async function logoutUser() {
+            try {
+                await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+            } catch (e) { console.error(e); }
+            localStorage.removeItem('vaishnav_jwt');
+            localStorage.removeItem('vaishnav_user');
+            window.location.reload();
+        }
 
         async function sendMessage() {
             const input = document.getElementById('userInput');

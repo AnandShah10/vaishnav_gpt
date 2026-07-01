@@ -1,5 +1,5 @@
 <p align="center">
-  <span style="font-size: 64px;">ॐ</span>
+  <span style="font-size: 64px;">🙏</span>
 </p>
 
 <h1 align="center">Vaishnav GPT</h1>
@@ -17,30 +17,35 @@
 
 ---
 
-## 🌸 Overview
+## 🕉️ Overview
 
 **Vaishnav GPT** is an AI chatbot built on Django and Azure OpenAI that serves as an authoritative, devotional guide to Vaishnava theology. It adapts its responses based on the user's chosen tradition (Sampradaya), providing contextually accurate answers grounded in scriptures like the Bhagavad Gita, Srimad Bhagavatam, and tradition-specific texts.
 
 ### ✨ Key Features
 
-- **Sampradaya-Adaptive Responses** — Tailors philosophical vocabulary, scriptural citations, and ritual guidance to the user's selected tradition
-- **5 Tradition Modes** — Universal Bhakti, Krishna Bhakti (Gaudiya), Rama Bhakti (Ramanandi), Pushtimarg (Vallabhacharya), and Nimbarka Bhakti
-- **Rich Markdown Rendering** — Bot responses display with proper headings, bulleted/numbered lists, bold text, and paragraph spacing
-- **Session-Based Chat History** — Maintains conversation context per tradition within a session
-- **Conversation Logging** — All messages are stored in the database for analytics
-- **Real-Time Panchang Awareness** — Provides date-contextual devotional guidance
+- **10 Learning Paths** — Universal Bhakti, Krishna Bhakti, Rama Bhakti, Pushtimarg, Nimbarka, **Bhagavad Gita**, **Srimad Bhagavatam**, **Upanishads & Vedanta**, **Vishnu Puran**, and **Vaishnav Panchang**
+- **Email OTP Authentication** — Passwordless login via email OTP with JWT token issuance for mobile API support
+- **Multi-Language Support** — Full interface and greetings in **English**, **Hindi** (हिन्दी), and **Gujarati** (ગુજરાતી)
+- **Learning Progress Persistence** — Authenticated users' chat history is saved per tradition and restored on return
+- **Streaming Responses** — Real-time token-by-token bot replies with typing animation
+- **Sampradaya-Adaptive Responses** — Tailors philosophical vocabulary, scriptural citations, and ritual guidance per tradition
+- **Feedback System** — Auto-triggers after 3 messages; email field auto-filled for logged-in users. Exposes `X-Show-Feedback` HTTP header for mobile clients
+- **Real-Time Panchang** — Vaishnav Panchang path auto-sends today's panchang query on selection
+- **Rich Markdown Rendering** — Bot responses rendered with headings, lists, bold text, and code blocks
+- **Conversation Logging** — All messages stored in the database for analytics
 
 ---
 
-## 🏗️ Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
 | **Backend** | Django 6.0 (WSGI) |
 | **AI Engine** | Azure OpenAI — GPT-4o-mini |
+| **Auth** | Email OTP + Django Sessions + JWT (SimpleJWT) |
 | **Database** | SQLite (dev) / PostgreSQL (prod) |
 | **Frontend** | Vanilla HTML, CSS, JavaScript |
-| **Fonts** | Inter, Playfair Display (Google Fonts) |
+| **Fonts** | Inter, Cinzel (Google Fonts) |
 | **Deployment** | Azure App Service / Gunicorn |
 
 ---
@@ -49,22 +54,24 @@
 
 ```
 vaishnav_gpt/
-├── bot/
-│   ├── models.py            # Message model for conversation logging
-│   ├── views.py             # API endpoint + markdown-to-HTML converter
-│   ├── urls.py              # Route definitions
-│   └── templates/
-│       └── viashnav_bot.html  # Single-page chat UI
-├── vaishnav_chatbot/
-│   ├── settings.py          # Django settings
-│   ├── urls.py              # Root URL config
-│   └── wsgi.py              # WSGI entry point
-├── static/
-│   └── KB.txt               # Knowledge Base — system prompt & guardrails
-├── .env                     # Environment variables (not committed)
-├── Procfile                 # Gunicorn deployment config
-├── requirements.txt         # Python dependencies
-└── manage.py
+├ bot/
+│   ├ models.py            # Message, UserFeedback, LearningProgress, OTP models
+│   ├ views.py             # Chat API, OTP auth, history, feedback endpoints
+│   ├ urls.py              # Route definitions
+│   └ templates/
+│       └ viashnav_bot.html # Single-page chat UI
+├ vaishnav_chatbot/
+│   ├ settings.py          # Django settings (email, auth, DB)
+│   ├ urls.py              # Root URL config
+│   └ wsgi.py              # WSGI entry point
+├ static/
+│   ├ KB.txt               # Knowledge Base — system prompt & guardrails
+│   ├ morpankh.svg         # Logo icon
+│   └ morpankh.png         # Hero image
+├ .env                     # Environment variables (not committed)
+├ Procfile                 # Gunicorn deployment config
+├ requirements.txt         # Python dependencies
+└ manage.py
 ```
 
 ---
@@ -75,6 +82,7 @@ vaishnav_gpt/
 
 - Python 3.12+
 - Azure OpenAI API access (API key + endpoint)
+- Gmail account with App Password (for OTP emails)
 
 ### 1. Clone & Install
 
@@ -97,73 +105,159 @@ Create a `.env` file in the project root:
 OPENAI_API_KEY=your_azure_openai_api_key
 ENDPOINT_URL=https://your-resource.openai.azure.com/
 SECRET_KEY=your_django_secret_key
+EMAIL_HOST_USER=your_gmail@gmail.com
+EMAIL_HOST_PASSWORD=your_gmail_app_password
 ```
+
+> **Note:** For Gmail, you need to generate an [App Password](https://support.google.com/accounts/answer/185833) (not your regular password). Enable 2-Step Verification first, then create an App Password under your Google Account security settings.
 
 ### 3. Run Migrations & Start
 
 ```bash
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 8001
 ```
 
-Open **http://localhost:8000** in your browser.
+Open **http://localhost:8001** in your browser.
 
 ---
 
 ## 🎨 UI Design
 
-The interface follows a warm, earthy aesthetic inspired by traditional Vaishnava art:
+The interface follows a premium, light-themed aesthetic with glassmorphism:
 
-- **Warm beige gradient** background with brown accents
-- **Card-based tradition selector** on the landing screen
+- **Gradient background** with soft teal, green, and amber tones
+- **Card-based learning path selector** with hover animations
+- **Language toggle buttons** for English / Hindi / Gujarati
+- **Localized greeting messages** per tradition and language
+- **Two-step OTP login modal** (Email → OTP)
 - **Pill-shaped suggestion chips** for quick prompts
-- **Clean chat bubbles** with rich typography (headings, lists, bold text)
+- **Clean chat bubbles** with streaming animation and rich typography
 - **Sticky top navbar** with tradition breadcrumb
 - Fully **responsive** — works on desktop and mobile
 
 ---
 
-## 🛕 Supported Traditions
+## 📖 Supported Learning Paths
 
-| Tradition | Sampradaya | Focus |
-|---|---|---|
-| 🌍 **Universal Bhakti** | All four Sampradayas | Core Vaishnava principles |
-| 🐄 **Krishna Bhakti** | Brahma (Gaudiya) | Radha-Krishna, Chaitanya, Bhagavatam |
-| 🏹 **Rama Bhakti** | Sri (Ramanandi) | Lord Rama, Hanuman, Vishishtadvaita |
-| 🌺 **Pushtimarg** | Rudra (Vallabhacharya) | Shuddhadvaita, Shrinathji Sewa |
-| 🌼 **Nimbarka Bhakti** | Kumara (Nimbarka) | Dvaitadvaita, Radha-Krishna |
+| Path | Focus |
+|---|---|
+| 🙏 **Universal Bhakti** | Core Vaishnava principles across all Sampradayas |
+| 🪈 **Krishna Bhakti** | Radha-Krishna, Chaitanya, Gaudiya tradition |
+| 🏹 **Rama Bhakti** | Lord Rama, Hanuman, Ramanandi tradition |
+| 🎯 **Pushtimarg** | Shuddhadvaita, Shrinathji, Vallabhacharya |
+| 🙏 **Nimbarka Bhakti** | Dvaitadvaita, Kumara Sampradaya |
+| 📖 **Bhagavad Gita** | Chapter-by-chapter study of the Gita |
+| 📚 **Srimad Bhagavatam** | Pastimes, philosophy, and devotional narratives |
+| 🕉️ **Upanishads & Vedanta** | Brahman, Atman, and Vedantic philosophy |
+| 🌐 **Vishnu Puran** | Cosmic cycles, avatars, and creation narratives |
+| 📅 **Vaishnav Panchang** | Today's tithi, nakshatra, Ekadashi, festivals |
 
 ---
 
-## 🔧 API Reference
+## 🔌 API Reference
 
 ### `POST /api/vaishnav-bot/`
 
-Send a message to the bot.
+Send a message to the bot. Supports streaming responses.
 
 **Request Body:**
 ```json
 {
   "message": "Explain Bhagavad Gita Chapter 2",
-  "tradition": "krishna"
+  "tradition": "gita",
+  "language": "English"
+}
+```
+
+**Response:** Streamed plain text (token by token). On the 3rd user message, the response includes the header `X-Show-Feedback: true` for mobile feedback trigger.
+
+---
+
+### `POST /api/send-otp/`
+
+Send a one-time password to the user's email.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
 }
 ```
 
 **Response:**
 ```json
 {
-  "reply": "<h3>Sankhya Yoga</h3><p>Chapter 2 of the Bhagavad Gita...</p>",
-  "tradition": "krishna"
+  "status": "success"
 }
 ```
 
-### `GET /`
+---
 
-Serves the chat UI. Flushes the session to start a fresh conversation.
+### `POST /api/verify-otp/`
+
+Verify the OTP and receive a JWT token. Also creates a Django session.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "token": "eyJhbGciOi...",
+  "refresh": "eyJhbGciOi...",
+  "username": "user@example.com"
+}
+```
 
 ---
 
-## 📜 Knowledge Base
+### `GET /api/get-history/?tradition=gita`
+
+Retrieve saved chat history for a specific tradition. Requires authenticated session.
+
+**Response:**
+```json
+{
+  "status": "success",
+  "messages": [
+    {"role": "user", "content": "What is Karma Yoga?"},
+    {"role": "assistant", "content": "Karma Yoga is..."}
+  ]
+}
+```
+
+---
+
+### `POST /api/submit-feedback/`
+
+Submit user feedback with rating.
+
+**Request Body:**
+```json
+{
+  "name": "Anand",
+  "phone": "9876543210",
+  "email": "anand@example.com",
+  "rating": 5
+}
+```
+
+---
+
+### `POST /api/logout/`
+
+Ends the user's Django session.
+
+---
+
+## 📘 Knowledge Base
 
 The bot's behavior is governed by `static/KB.txt`, which defines:
 
@@ -175,7 +269,7 @@ The bot's behavior is governed by `static/KB.txt`, which defines:
 
 ---
 
-## 🚢 Deployment (Azure)
+## ☁️ Deployment (Azure)
 
 The app is configured for Azure App Service via the `Procfile`:
 
@@ -184,6 +278,13 @@ web: gunicorn vaishnav_chatbot.wsgi --bind=0.0.0.0:$PORT
 ```
 
 Static files are served via **WhiteNoise** middleware.
+
+**Environment variables to set on the server:**
+- `OPENAI_API_KEY`
+- `ENDPOINT_URL`
+- `SECRET_KEY`
+- `EMAIL_HOST_USER`
+- `EMAIL_HOST_PASSWORD`
 
 ---
 
